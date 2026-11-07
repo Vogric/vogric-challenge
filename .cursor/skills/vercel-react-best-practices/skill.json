@@ -1,0 +1,73 @@
+{
+  "name": "vercel-react-best-practices",
+  "version": "1.0.0",
+  "description": "Vercel React Best Practices - Performance optimization, RSC boundaries, Server/Client Components, data fetching patterns",
+  "author": "vercel-labs",
+  "appliesTo": ["*.tsx", "*.ts", "app/**", "components/**", "hooks/**"],
+  "rules": [
+    {
+      "id": "rsc-server-components",
+      "title": "Prefer React Server Components (RSC)",
+      "description": "Use Server Components by default in Next.js App Router. Only add 'use client' when interactivity, browser APIs, or client-side state is required.",
+      "severity": "error",
+      "example": {
+        "bad": "export default function Page() { 'use client'; ... }",
+        "good": "export default async function Page() { const data = await db.query(); return <div>{data}</div>; }"
+      }
+    },
+    {
+      "id": "no-waterfalls",
+      "title": "Eliminate Data Fetching Waterfalls",
+      "description": "Fetch all required data in parallel at the top level. Do not nest await calls sequentially. Use Promise.all() or TanStack Query for parallel data fetching.",
+      "severity": "error"
+    },
+    {
+      "id": "loading-states",
+      "title": "Implement Loading UI with streaming",
+      "description": "Use Next.js loading.tsx files for Suspense boundaries. Show skeletons or placeholders while data streams in.",
+      "severity": "warning"
+    },
+    {
+      "id": "server-actions",
+      "title": "Use Server Actions for mutations",
+      "description": "Prefer Next.js Server Actions ('use server') over client-side API routes for form submissions and data mutations when possible.",
+      "severity": "suggestion"
+    },
+    {
+      "id": "client-component-boundary",
+      "title": "Minimize 'use client' boundary",
+      "description": "Push 'use client' as deep as possible in the component tree. Keep interactive logic isolated to small client components wrapped in server components.",
+      "severity": "warning"
+    },
+    {
+      "id": "image-optimization",
+      "title": "Use next/image for all images",
+      "description": "Never use  tags directly. Use next/image with proper width, height, and priority attributes for LCP optimization.",
+      "severity": "error"
+    },
+    {
+      "id": "link-optimization",
+      "title": "Use next/link for navigation",
+      "description": "Never use  tags for internal navigation. Use next/link with prefetch for client-side transitions.",
+      "severity": "error"
+    },
+    {
+      "id": "font-optimization",
+      "title": "Use next/font for typography",
+      "description": "Use next/font/google or next/font/local for self-hosted fonts with automatic subsetting and no layout shift.",
+      "severity": "suggestion"
+    },
+    {
+      "id": "dynamic-imports",
+      "title": "Use dynamic imports for heavy client libraries",
+      "description": "Use next/dynamic with ssr:false for client-only libraries (charts, maps, editors) to avoid SSR hydration mismatches.",
+      "severity": "warning"
+    },
+    {
+      "id": "no-console-in-production",
+      "title": "Remove console.log from production code",
+      "description": "Strip all console.log, console.debug, console.info statements before committing. Use structured logging instead.",
+      "severity": "warning"
+    }
+  ]
+}

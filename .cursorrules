@@ -1,0 +1,231 @@
+# .cursorrules — SaaS Dashboard Senior React/Next.js
+# Contrato de calidad para generación de código (Nivel Senior Staff Engineer / Vercel)
+# Este archivo rige TODA generación de código en este repositorio.
+
+## 1. Stack Tecnológico (Obligatorio)
+- Framework: Next.js 14 App Router (React Server Components por defecto)
+- Lenguaje: TypeScript 5.x (strict: true, CERO `any`)
+- Estilos: Tailwind CSS v4 + shadcn/ui (Radix UI)
+- Base de Datos: PostgreSQL + Prisma ORM
+- Autenticación: JWT propio con `jose` (NO NextAuth, NO Zustand)
+- Estado de Servidor: TanStack Query v5
+- Estado de Cliente: React Context API optimizado (múltiples Contexts pequeños + useMemo)
+- Formularios: React Hook Form + Zod
+- Testing: Vitest + React Testing Library + Playwright (E2E)
+- Package Manager: pnpm (preferido) o npm
+
+## 2. Componentes React (Reglas Estrictas)
+
+### 2.1 Declaración de Componentes
+- Usar SIEMPRE `function` declarations para componentes de nivel superior.
+- PROHIBIDO: `const Component = () => {}` (arrow functions para componentes).
+- Razón: Hoisting, stack traces más claros, convención oficial de Next.js.
+
+```tsx
+// ✅ Correcto
+export default function LoginPage() { ... }
+
+// ❌ Incorrecto
+export default const LoginPage = () => { ... }
+```
+
+### 2.2 Tamaño y Composición
+- Componentes atómicos: < 40 líneas por archivo.
+- Si excede, descomponer en subcomponentes más pequeños.
+- Composición sobre props infinitas: usar `children`, slots de Radix, o render props.
+- Separación estricta: componentes UI "tontos" + lógica en custom hooks o Context.
+
+### 2.3 Tipado
+- Cero `any` en todo el código.
+- Branded types para IDs: `type UserId = string & { readonly __brand: 'UserId' }`.
+- Interfaces de props DECLARADAS DENTRO del mismo archivo del componente.
+- Tipos de dominio reutilizables en `src/shared/lib/` o `src/entities/*/model/*.types.ts`.
+- Usar `z.infer<typeof schema>` para tipos de formularios Zod.
+
+## 3. Arquitectura de Carpetas (Feature-Sliced Simplificado)
+
+```
+src/
+  app/              # Providers, router, i18n, API routes
+  entities/         # Dominio compartido (User, Organization, Task) — tipos y API
+  features/         # Dominio por negocio (auth, dashboard, projects)
+    {{feature}}/
+      api/          # TanStack Query hooks o Server Actions
+      components/
+      hooks/
+      lib/          # Zod schemas
+      model/        # Context + reducer (si aplica)
+      ui/           # Pantallas compuestas
+  shared/
+    ui/             # Design system atómico: Button, Input, Label, Alert, Skeleton, ErrorBoundary
+    context/        # Contexts separados: themeContext, languageContext, authContext
+    lib/            # cn(), branded types, fetch client, utils
+    hooks/          # useMediaQuery, useInterval, etc.
+  pages/            # Composición de features (rutas)
+```
+
+**Regla crítica:** Un contexto por dominio. Nunca un `AppContext` gigante con todo.
+
+## 4. Server vs Client Components (Next.js 14)
+
+### 4.1 Server Components (Default)
+- Usar Server Components por defecto en `app/`.
+- Fetch de datos directamente en el componente (async/await con Prisma).
+- No usar `useEffect`, `useState`, `useContext` en Server Components.
+- Usar `loading.tsx` para Suspense y streaming.
+
+### 4.2 Client Components (`'use client'`)
+- Solo cuando hay interactividad: formularios, botones, estado de UI, event handlers.
+- Push `'use client'` lo más profundo posible en el árbol.
+- Wrapper mínimo: el Server Component pasa datos al Client Component.
+
+### 4.3 Server Actions
+- Preferir Server Actions (`'use server'`) para mutaciones de formularios cuando sea posible.
+- Evitar API Routes innecesarias para operaciones CRUD simples.
+
+## 5. Estado de Cliente (Context API Optimizado)
+
+### 5.1 Contexts Particionados
+- Un Context por dominio: `AuthContext`, `ThemeContext`, `OrganizationContext`, `NotificationContext`.
+- Valor de cada Provider memoizado con `useMemo`.
+- Hooks custom que validen estar dentro del Provider correspondiente (throw si no).
+
+```tsx
+// ✅ Correcto
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (!context) throw new Error('useAuth debe usarse dentro de AuthProvider')
+  return context
+}
+```
+
+### 5.2 Prohibido
+- Zustand, Redux, o cualquier otra librería de estado global.
+- Guardar datos de servidor en Context (eso es TanStack Query).
+- Context gigante con todo el estado de la aplicación.
+
+## 6. Estado de Servidor (TanStack Query v5)
+
+- `useQuery` para datos de servidor (fetch, cache, revalidación).
+- `useMutation` con Optimistic UI (`onMutate`, `onError`, `onSettled`).
+- `staleTime` mínimo 5 minutos para datos estáticos.
+- `retry: 1` para fallos transitorios.
+- NO abusar de `useMemo`/`useCallback` — React Compiler las gestiona.
+
+## 7. Prisma y Base de Datos
+
+### 7.1 Schema
+- Usar Prisma enums para valores fijos (Role, TaskStatus).
+- `@unique` en claves naturales (email, slug).
+- `@@index` en campos frecuentemente consultados.
+- Relaciones explícitas con `@relation`.
+
+### 7.2 Queries
+- Singleton de Prisma Client (globalThis en desarrollo).
+- `select` siempre con campos específicos (nunca traer todo el registro).
+- `include` para datos relacionales (evitar N+1).
+- `$transaction` para múltiples escrituras atómicas.
+- Paginación con `take` y `skip` para datasets grandes.
+
+### 7.3 Seed
+- Idempotente: usar `upsert` con constraints únicos.
+- Ejecutable múltiples veces sin duplicar datos.
+
+## 8. Autenticación (JWT con jose)
+
+### 8.1 Implementación
+- Librería `jose` para firmar/verificar JWT (HS256).
+- Clave secreta desde `process.env.JWT_SECRET`.
+- Cookie `HttpOnly`, `SameSite=Lax`, `Path=/`, `Max-Age=30d`.
+- `Secure` solo en producción.
+- Endpoints: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`.
+- Sesiones JWT (no Prisma Adapter, no NextAuth).
+
+### 8.2 Middleware
+- Verificación JWT manual en `middleware.ts`.
+- Proteger rutas `/dashboard/:path*`.
+- Redirigir a `/auth/login` si no autenticado.
+- Redirigir a `/dashboard` si ya autenticado y va a `/auth/login`.
+
+## 9. Accesibilidad (WCAG 2.2 AA)
+
+- HTML semántico (`<main>`, `<section>`, `<table>`, `<label>`, `<button>`).
+- Labels asociados a inputs (`htmlFor` + `id`).
+- Navegación por teclado funcional.
+- Focus visible (`focus-visible:ring-2`).
+- Contraste de colores mínimo 4.5:1.
+- `@axe-core/react` en tests de integración.
+- `prefers-reduced-motion` para animaciones.
+- ARIA solo cuando sea necesario (no sobre HTML semántico).
+
+## 10. Rendimiento
+
+- Rutas lazy con `Suspense`.
+- Lazy loading de componentes pesados con `next/dynamic`.
+- Virtualización (`@tanstack/react-virtual`) para listas > 100 filas.
+- Imágenes optimizadas con `next/image`.
+- Enlaces internos con `next/link`.
+- Fuentes con `next/font/google`.
+- No `console.log` en código de producción.
+- Bundle splitting por ruta (Next.js lo hace automáticamente).
+
+## 11. Testing
+
+### 11.1 Unitario/Integración (Vitest + RTL)
+- Tests para hooks custom, utils, y componentes críticos.
+- MSW para mockear API.
+- Cobertura > 80% en lógica crítica.
+
+### 11.2 E2E (Playwright)
+- Flujos críticos: login, CRUD, exportar CSV.
+- Selectores accesibles: `getByRole`, `getByLabel`, `getByText`.
+- NO usar selectores CSS frágiles (`.class`, `#id`).
+- `fullyParallel: false` (comparten DB).
+- `trace: 'on-first-retry'`, `screenshot: 'only-on-failure'`.
+
+## 12. Git y CI/CD
+
+### 12.1 Commits
+- Conventional Commits: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`, `perf:`.
+- Husky + lint-staged + commitlint en pre-commit.
+
+### 12.2 CI (GitHub Actions)
+- `lint`, `type-check`, `test`, `build` en cada PR.
+- Cache de dependencias (pnpm).
+- Despliegue en Vercel/Netlify.
+
+## 13. Código Prohibido (Auto-rechazo)
+
+| Prohibido | Alternativa |
+|-----------|-------------|
+| `function` → `const` arrow para componentes | `function` declaration |
+| `any` | Tipado estricto, branded types |
+| Zustand/Redux | Context API + useReducer |
+| Datos de servidor en Context | TanStack Query |
+| `useMemo`/`useCallback` abusivo | Dejar que React Compiler trabaje |
+| `fetch` en Server Components sin `cache: 'no-store'` cuando sea necesario | `cache: 'no-store'` o ISR |
+| Selectores CSS en tests (`#id`, `.class`) | `getByRole`, `getByLabel` |
+| `console.log` en producción | Estructurado logging |
+| `.env` con secretos reales commiteado | `.env.example` + `.env.local` |
+
+## 14. Idioma del Código
+
+- **Todo el código, comentarios, strings de UI, nombres de variables y funciones en INGLÉS profesional.**
+- No usar español en identifiers, comentarios, o textos de UI.
+- Ejemplos:
+  - ✅ `signIn`, `Invalid credentials`, `useOrganization`, `Active Projects`
+  - ❌ `iniciarSesion`, `Credenciales inválidas`, `useOrganizacion`, `Proyectos activos`
+
+## 15. Estructura de Commits
+
+```
+feat: add optimistic UI to task status updates
+fix: resolve middleware redirect loop
+refactor: extract VirtualizedTable to shared component
+chore: add vercel-react-best-practices skill
+docs: update JWT authentication flow
+```
+
+---
+
+**Nota:** Este archivo es el "contrato de calidad". Cualquier código generado debe cumplir todas las reglas anteriores. En caso de conflicto, este archivo tiene prioridad sobre cualquier otra convención.
