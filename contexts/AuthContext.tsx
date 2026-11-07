@@ -11,7 +11,10 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 async function fetchCurrentUser() {
-  const res = await fetch('/api/auth/me', { cache: 'no-store' })
+  const res = await fetch('/api/auth/me', {
+    cache: 'no-store',
+    credentials: 'include',
+  })
   if (!res.ok) return null
   const data = await res.json()
   return data.user ?? null

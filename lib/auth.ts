@@ -41,9 +41,10 @@ export async function verifyJWT(token: string): Promise<SessionPayload | null> {
 }
 
 export function setSessionCookie(response: Response, token: string) {
+  const isProduction = process.env.NODE_ENV === 'production'
   response.headers.set(
     'Set-Cookie',
-    `session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`
+    `session=${token}; Path=/; HttpOnly; SameSite=${isProduction ? 'None' : 'Lax'}; Max-Age=2592000${isProduction ? '; Secure' : ''}`
   )
 }
 
@@ -84,7 +85,11 @@ export async function getCurrentUserFromRequest(request: Request) {
   const payload = await getSessionFromCookie(cookieHeader)
   if (!payload) return null
 
-  return getCurrentUserFromToken(cookieHeader)
+  const user = await db.user.findUnique({
+    where: { id: payload.userId },
+    select: { id: true, email: true, name: true },
+  })
+  return user
 }
 
 export async function getCurrentUserFromServer() {

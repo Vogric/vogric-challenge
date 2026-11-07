@@ -1,31 +1,47 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { loginSchema, type LoginInput } from '@/lib/validations/auth'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function LoginPage() {
   const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
+  const passwordRef = useRef<HTMLInputElement>(null)
 
-  const form = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
-  })
-
-  async function onSubmit(values: LoginInput) {
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
     setError(null)
+
+    // Client-side validation
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('Invalid email')
+      emailRef.current?.focus()
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('Invalid email')
+      emailRef.current?.focus()
+      return
+    }
+    if (!password) {
+      setError('Password is required')
+      passwordRef.current?.focus()
+      return
+    }
+
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ email, password }),
+        credentials: 'include',
       })
 
       if (res.status === 401) {
@@ -54,11 +70,11 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           {error && (
-            <div role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            <div role="alert" id="email-error" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
-          <form id="login-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form id="login-form" className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -66,13 +82,10 @@ export default function LoginPage() {
                 type="email"
                 placeholder="user@company.com"
                 aria-label="Email"
-                {...form.register('email')}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                ref={emailRef}
               />
-              {form.formState.errors.email && (
-                <p className="text-sm text-destructive" id="email-error">
-                  {form.formState.errors.email.message}
-                </p>
-              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -81,20 +94,17 @@ export default function LoginPage() {
                 type="password"
                 placeholder="••••••••"
                 aria-label="Password"
-                {...form.register('password')}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                ref={passwordRef}
               />
-              {form.formState.errors.password && (
-                <p className="text-sm text-destructive" id="password-error">
-                  {form.formState.errors.password.message}
-                </p>
-              )}
             </div>
             <Button
-              type="submit"
+              type="button"
               className="w-full"
-              disabled={form.formState.isSubmitting}
+              onClick={handleSubmit}
             >
-              {form.formState.isSubmitting ? 'Signing in...' : 'Sign in'}
+              Sign in
             </Button>
           </form>
         </CardContent>
