@@ -1,0 +1,57 @@
+{
+  "name": "prisma-database-setup",
+  "version": "1.0.0",
+  "description": "Prisma Database Setup Best Practices - Schema design, migrations, seeding, and environment configuration",
+  "author": "prisma",
+  "appliesTo": ["prisma/**", "*.env*", "docker-compose*.yml", "scripts/**"],
+  "rules": [
+    {
+      "id": "prisma-enums",
+      "title": "Use Prisma enums for fixed values",
+      "description": "Define enum types in schema.prisma for fields with fixed values (roles, statuses, priorities) instead of plain strings.",
+      "severity": "error"
+    },
+    {
+      "id": "prisma-unique-constraints",
+      "title": "Add unique constraints to natural keys",
+      "description": "Add @unique to fields that should be naturally unique (email, slug, etc.) to prevent duplicates at the database level.",
+      "severity": "error"
+    },
+    {
+      "id": "prisma-indexes",
+      "title": "Add indexes to frequently queried fields",
+      "description": "Add @@index to fields used in WHERE, ORDER BY, or JOIN clauses to improve query performance.",
+      "severity": "warning"
+    },
+    {
+      "id": "prisma-soft-deletes",
+      "title": "Consider soft deletes for audit trails",
+      "description": "Use deletedAt timestamp instead of hard deletes for entities that need audit history or recovery.",
+      "severity": "suggestion"
+    },
+    {
+      "id": "prisma-seed-idempotent",
+      "title": "Make seed scripts idempotent",
+      "description": "Use upsert with unique constraints in seed scripts so they can be run multiple times without duplicating data.",
+      "severity": "error"
+    },
+    {
+      "id": "prisma-env-secrets",
+      "title": "Never commit .env with real credentials",
+      "description": "Use .env.example for template and .env.local for local development. Never commit production secrets to version control.",
+      "severity": "error"
+    },
+    {
+      "id": "prisma-migration-naming",
+      "title": "Use descriptive migration names",
+      "description": "Name migrations descriptively (e.g., add_user_roles, create_tasks_table) instead of auto-generated timestamps.",
+      "severity": "suggestion"
+    },
+    {
+      "id": "prisma-relation-fields",
+      "title": "Explicitly define relation fields",
+      "description": "Always specify both sides of a relation with explicit field references and @relation attributes for clarity.",
+      "severity": "warning"
+    }
+  ]
+}

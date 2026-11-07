@@ -1,0 +1,57 @@
+{
+  "name": "prisma-client-api",
+  "version": "1.0.0",
+  "description": "Prisma Client Best Practices - Efficient queries, type safety, connection management, and query optimization",
+  "author": "prisma",
+  "appliesTo": ["prisma/**", "lib/**", "app/api/**", "services/**"],
+  "rules": [
+    {
+      "id": "prisma-singleton",
+      "title": "Use Prisma Client singleton pattern",
+      "description": "In development, cache Prisma Client instance on globalThis to prevent multiple connections during hot reloads.",
+      "severity": "error"
+    },
+    {
+      "id": "prisma-select-only",
+      "title": "Always select only needed fields",
+      "description": "Never fetch entire records with select: {} or include: {}. Specify exactly which fields are needed to reduce payload and improve performance.",
+      "severity": "error"
+    },
+    {
+      "id": "prisma-include-over-fetch",
+      "title": "Use include for relational data, not manual queries",
+      "description": "Use Prisma's include to fetch related records in a single query instead of making separate queries in loops (N+1 problem).",
+      "severity": "error"
+    },
+    {
+      "id": "prisma-transactions",
+      "title": "Use $transaction for multiple writes",
+      "description": "Wrap multiple related database writes in a $transaction to ensure atomicity and consistency.",
+      "severity": "error"
+    },
+    {
+      "id": "prisma-pagination",
+      "title": "Implement pagination for large datasets",
+      "description": "Always use take and skip (or cursor-based pagination) for queries that may return many records. Never fetch unlimited records.",
+      "severity": "error"
+    },
+    {
+      "id": "prisma-error-handling",
+      "title": "Handle Prisma errors explicitly",
+      "description": "Catch PrismaClientKnownRequestError and check error codes (P2002, P2025, etc.) instead of generic error handling.",
+      "severity": "warning"
+    },
+    {
+      "id": "prisma-no-raw-queries",
+      "title": "Avoid raw SQL queries",
+      "description": "Prefer Prisma Client's type-safe API over $queryRaw. Only use raw queries for complex aggregations that Prisma cannot express.",
+      "severity": "warning"
+    },
+    {
+      "id": "prisma-connection-pool",
+      "title": "Configure connection pool limits",
+      "description": "Set connection_limit in DATABASE_URL or Prisma Client configuration to avoid exhausting database connections in serverless environments.",
+      "severity": "warning"
+    }
+  ]
+}
