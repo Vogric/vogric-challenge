@@ -32,7 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 pathname.startsWith('/dashboard/projects') ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'
               }`}
             >
-              Proyectos
+              Projects
             </Link>
           </nav>
           {children}
