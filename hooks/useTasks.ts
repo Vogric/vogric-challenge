@@ -3,13 +3,25 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNotifications } from '@/hooks/useNotifications'
 
-type TaskStatus = 'todo' | 'in_progress' | 'done'
+export type TaskStatus = 'todo' | 'in_progress' | 'done'
 
-type Task = {
+export type Task = {
   id: string
   title: string
   status: TaskStatus
   updatedAt: string
+}
+
+export type TasksPagination = {
+  page: number
+  pageSize: number
+  totalCount: number
+  totalPages: number
+}
+
+export type TasksResponse = {
+  tasks: Task[]
+  pagination: TasksPagination
 }
 
 type UpdateTaskStatusInput = {
@@ -17,12 +29,29 @@ type UpdateTaskStatusInput = {
   status: TaskStatus
 }
 
-async function fetchTasks(orgId: string): Promise<Task[]> {
-  const res = await fetch(`/api/dashboard/tasks?orgId=${encodeURIComponent(orgId)}`, {
+async function fetchTasks(orgId: string, page: number, pageSize: number): Promise<TasksResponse> {
+  const params = new URLSearchParams({
+    orgId,
+    page: String(page),
+    pageSize: String(pageSize),
+  })
+
+  const res = await fetch(`/api/dashboard/tasks?${params.toString()}`, {
     cache: 'no-store',
   })
   if (!res.ok) throw new Error('Failed to fetch tasks')
-  return res.json()
+
+  const data = await res.json()
+  return {
+    tasks: Array.isArray(data?.tasks) ? data.tasks : [],
+    pagination:
+      data?.pagination ?? {
+        page,
+        pageSize,
+        totalCount: 0,
+        totalPages: 0,
+      },
+  }
 }
 
 async function updateTaskStatus(input: UpdateTaskStatusInput): Promise<Task> {
@@ -36,38 +65,47 @@ async function updateTaskStatus(input: UpdateTaskStatusInput): Promise<Task> {
   return data.task
 }
 
-export function useTasks(orgId: string | null) {
+export function useTasks(orgId: string | null, page = 1, pageSize = 50) {
   return useQuery({
-    queryKey: ['tasks', orgId],
-    queryFn: () => fetchTasks(orgId!),
+    queryKey: ['tasks', orgId, page, pageSize],
+    queryFn: () => fetchTasks(orgId!, page, pageSize),
     enabled: !!orgId,
     staleTime: 1000 * 60 * 2,
   })
 }
 
-export function useUpdateTaskStatus() {
+export function useUpdateTaskStatus(orgId: string) {
   const queryClient = useQueryClient()
   const { addNotification } = useNotifications()
+  const queryKey = ['tasks', orgId] as const
 
   return useMutation({
     mutationFn: updateTaskStatus,
     onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey: ['tasks', input.taskId] })
+      await queryClient.cancelQueries({ queryKey })
 
-      const previousTasks = queryClient.getQueryData<Task[]>(['tasks', input.taskId])
+      const previousTasks = queryClient.getQueriesData<TasksResponse>({ queryKey })
 
-      queryClient.setQueryData<Task[]>(['tasks', input.taskId], (old) =>
-        old?.map((t) => (t.id === input.taskId ? { ...t, status: input.status } : t)) ?? []
-      )
+      queryClient.setQueriesData<TasksResponse>({ queryKey }, (old) => {
+        if (!old) return old
+        return {
+          ...old,
+          tasks: old.tasks.map((task) =>
+            task.id === input.taskId ? { ...task, status: input.status } : task
+          ),
+        }
+      })
 
       return { previousTasks }
     },
-    onError: (err, input, context) => {
-      queryClient.setQueryData<Task[]>(['tasks', input.taskId], context?.previousTasks)
+    onError: (_error, _input, context) => {
+      context?.previousTasks.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
       addNotification({ type: 'error', message: 'Failed to update task. Reverting changes.' })
     },
-    onSettled: (_, __, input) => {
-      queryClient.invalidateQueries({ queryKey: ['tasks', input.taskId] })
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey })
     },
   })
 }

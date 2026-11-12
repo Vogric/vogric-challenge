@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { getCurrentUserFromRequest } from '@/lib/auth'
+import { canManageTasks } from '@/lib/authz'
 import { db } from '@/lib/db'
 
 const updateTaskSchema = z.object({
@@ -44,16 +45,20 @@ export async function PATCH(
       return Response.json({ error: 'Task not found' }, { status: 404 })
     }
 
-    // Verify membership via included project relation
+    // Verify membership and role via the included project relation.
     const membership = await db.membership.findFirst({
       where: {
         userId: user.id,
         organizationId: task.project.organizationId,
       },
+      select: { role: true },
     })
 
-    if (!membership) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 })
+    if (!membership || !canManageTasks(membership.role)) {
+      return Response.json(
+        { error: 'Forbidden: ADMIN or MANAGER role required' },
+        { status: 403 }
+      )
     }
 
     const updatedTask = await db.task.update({

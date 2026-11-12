@@ -2,10 +2,12 @@ import { z } from 'zod'
 import { getCurrentUserFromRequest } from '@/lib/auth'
 import { db } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 const querySchema = z.object({
-  orgId: z.string(),
-  page: z.string().optional(),
-  pageSize: z.string().optional(),
+  orgId: z.string().min(1),
+  page: z.coerce.number().int().positive().max(100_000).default(1),
+  pageSize: z.coerce.number().int().positive().max(100).default(50),
 })
 
 export async function GET(req: Request) {
@@ -16,18 +18,22 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url)
   const parsed = querySchema.safeParse({
-    orgId: searchParams.get('orgId'),
-    page: searchParams.get('page'),
-    pageSize: searchParams.get('pageSize'),
+    orgId: searchParams.get('orgId') ?? undefined,
+    page: searchParams.get('page') ?? undefined,
+    pageSize: searchParams.get('pageSize') ?? undefined,
   })
 
   if (!parsed.success) {
-    return Response.json({ error: 'Missing orgId' }, { status: 400 })
+    return Response.json(
+      {
+        error: 'Invalid query parameters',
+        details: parsed.error.flatten().fieldErrors,
+      },
+      { status: 400 }
+    )
   }
 
-  const { orgId } = parsed.data
-  const page = Math.max(1, parseInt(parsed.data.page ?? '1', 10))
-  const pageSize = Math.max(1, Math.min(100, parseInt(parsed.data.pageSize ?? '50', 10)))
+  const { orgId, page, pageSize } = parsed.data
   const skip = (page - 1) * pageSize
 
   // Verify membership

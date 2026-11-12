@@ -1,35 +1,117 @@
-export const dynamic = 'force-dynamic';
+import { redirect } from 'next/navigation'
+import { getCurrentUserFromServer } from '@/lib/auth'
+import { getActiveMembership } from '@/lib/organizations'
+import { db } from '@/lib/db'
 
-export default function DashboardHomePage() {
+export const dynamic = 'force-dynamic'
+
+type StatCardProps = {
+  title: string
+  value: string | number
+  description: string
+  valueTestId: string
+  accent?: 'primary' | 'destructive' | 'secondary' | 'success'
+}
+
+function StatCard({ title, value, description, valueTestId, accent = 'primary' }: StatCardProps) {
+  const accentClass = {
+    primary: 'bg-primary text-primary-foreground',
+    destructive: 'bg-destructive text-destructive-foreground',
+    secondary: 'bg-secondary text-secondary-foreground',
+    success: 'bg-green-600 text-green-100',
+  }[accent]
+
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-      <div className="rounded-lg border border-border p-6 bg-card shadow-sm">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-semibold">Active Projects</h2>
-          <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">12</span>
-        </div>
-        <p className="text-muted-foreground text-sm">Active projects this month.</p>
+    <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+      <div className="mb-2 flex items-center justify-between">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <span
+          data-testid={valueTestId}
+          className={`rounded-full px-2 py-0.5 text-xs tabular-nums ${accentClass}`}
+        >
+          {value}
+        </span>
       </div>
-      <div className="rounded-lg border border-border p-6 bg-card shadow-sm">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-semibold">Pending Tasks</h2>
-          <span className="rounded-full bg-destructive px-2 py-0.5 text-xs text-destructive-foreground">24</span>
-        </div>
-        <p className="text-muted-foreground text-sm">Assigned tasks not yet completed.</p>
+      <p className="text-sm text-muted-foreground">{description}</p>
+    </div>
+  )
+}
+
+export default async function DashboardHomePage() {
+  const user = await getCurrentUserFromServer()
+  if (!user) redirect('/auth/login')
+
+  const membership = await getActiveMembership(user.id)
+  if (!membership) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h1 className="text-lg font-semibold">No organization assigned</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Ask an administrator to add you to an organization.
+        </p>
       </div>
-      <div className="rounded-lg border border-border p-6 bg-card shadow-sm">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-semibold">Users</h2>
-          <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">8</span>
-        </div>
-        <p className="text-muted-foreground text-sm">Members in current organization.</p>
+    )
+  }
+
+  const organizationId = membership.organization.id
+
+  const [activeProjects, pendingTasks, members, dbLatency] = await Promise.all([
+    db.project.count({ where: { organizationId } }),
+    db.task.count({
+      where: {
+        project: { organizationId },
+        status: { in: ['todo', 'in_progress'] },
+      },
+    }),
+    db.membership.count({ where: { organizationId } }),
+    (async () => {
+      const start = Date.now()
+      try {
+        await db.$queryRaw`SELECT 1`
+        return Date.now() - start
+      } catch {
+        return null
+      }
+    })(),
+  ])
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Overview</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {membership.organization.name} · signed in as {membership.role.toLowerCase()}
+        </p>
       </div>
-      <div className="rounded-lg border border-border p-6 bg-card shadow-sm">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-semibold">Uptime</h2>
-          <span className="rounded-full bg-green-600 px-2 py-0.5 text-xs text-green-100">99.8%</span>
-        </div>
-        <p className="text-muted-foreground text-sm">Average system availability.</p>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Active Projects"
+          value={activeProjects}
+          description={`Projects in ${membership.organization.name}.`}
+          valueTestId="stat-projects"
+        />
+        <StatCard
+          title="Pending Tasks"
+          value={pendingTasks}
+          description="Tasks not yet completed."
+          valueTestId="stat-pending"
+          accent="destructive"
+        />
+        <StatCard
+          title="Users"
+          value={members}
+          description="Members in the current organization."
+          valueTestId="stat-members"
+          accent="secondary"
+        />
+        <StatCard
+          title="Database"
+          value={dbLatency === null ? 'Offline' : `${dbLatency} ms`}
+          description="Live Prisma health check."
+          valueTestId="stat-db"
+          accent={dbLatency === null ? 'destructive' : 'success'}
+        />
       </div>
     </div>
   )

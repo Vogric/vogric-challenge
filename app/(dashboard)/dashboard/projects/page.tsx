@@ -1,25 +1,35 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
-import { db } from '@/lib/db'
+import { redirect } from 'next/navigation'
+import { getCurrentUserFromServer } from '@/lib/auth'
+import { getActiveMembership } from '@/lib/organizations'
 import { TaskListClient } from '@/components/projects/TaskListClient'
 
 export default async function ProjectsPage() {
-  const org = await db.organization.findFirst({
-    where: { slug: 'acme-corp' },
-    select: { id: true, name: true },
-  })
+  const user = await getCurrentUserFromServer()
+  if (!user) redirect('/auth/login')
 
-  const orgId = org?.id ?? ''
+  const membership = await getActiveMembership(user.id)
+  if (!membership) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h1 className="text-lg font-semibold">No organization assigned</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Ask an administrator to add you to an organization.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Projects</h1>
-        <p className="text-muted-foreground text-sm">
-          Organization: {org?.name ?? 'Acme Corp'}
+        <p className="text-sm text-muted-foreground">
+          Organization: {membership.organization.name}
         </p>
       </div>
-      {orgId ? <TaskListClient orgId={orgId} /> : null}
+      <TaskListClient orgId={membership.organization.id} />
     </div>
   )
 }

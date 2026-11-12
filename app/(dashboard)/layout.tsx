@@ -14,7 +14,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex h-screen w-screen overflow-hidden bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Navbar user={null} />
+        <Navbar />
         <main className="flex-1 overflow-y-auto p-6">
           <nav className="flex items-center space-x-1 text-sm text-muted-foreground mb-6">
             <Link
