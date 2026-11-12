@@ -3,7 +3,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
-![Tests](https://img.shields.io/badge/Tests-31%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/Tests-33%20passing-brightgreen.svg)
 
 **[Live Demo](https://your-project.vercel.app)** • Credentials: `demo@example.com` / `password123`
 
@@ -19,10 +19,10 @@ SaaS Dashboard is a high-performance B2B administration panel built with modern 
 
 - **Custom JWT Authentication**: Secure, proprietary authentication flow using the `jose` library, featuring HttpOnly cookies and custom route protection middleware.
 - **Optimistic UI**: Instant UI updates powered by TanStack Query v5, with automatic cache rollback to ensure data consistency in case of network failures.
-- **DOM Virtualization**: Efficient rendering of large datasets (2,000+ rows) using `@tanstack/react-virtual` to maintain 60fps scrolling and minimal memory footprint.
+- **Paginated Task Table**: Server-paginated task lists (50 rows per page) with a standard accessible table. Full virtualization is intentionally deferred until it has dedicated performance tests.
 - **Partitioned State Management**: Focused, native React Contexts (Auth, Theme, Organization, Notification) optimized with `useMemo` to prevent unnecessary re-renders, avoiding heavy third-party state libraries.
 - **End-to-End Type Safety**: Zod schemas acting as the single source of truth, seamlessly shared between frontend forms and backend API validations.
-- **Comprehensive Testing Pyramid**: 31 automated tests (Unit, Integration, and E2E) ensuring reliability across critical business logic and user flows.
+- **Comprehensive Testing Pyramid**: 33 automated tests (Unit, Integration, and E2E) ensuring reliability across critical business logic and user flows.
 
 ---
 
@@ -32,7 +32,7 @@ SaaS Dashboard is a high-performance B2B administration panel built with modern 
 |-------|------------|
 | Framework | Next.js 14 (App Router, Server Components, Streaming) |
 | Language | TypeScript (strict mode, zero `any`) |
-| Styling | Tailwind CSS v4 + shadcn/ui |
+| Styling | Tailwind CSS v3.4 + shadcn/ui |
 | Server State | TanStack Query v5 |
 | Client State | Partitioned Context API (Auth, Theme, Organization, Notification) |
 | Database | PostgreSQL + Prisma ORM (versioned migrations) |
@@ -102,7 +102,7 @@ tests/         # E2E tests (Playwright) & Unit tests (Vitest)
 - **Unit Tests**: Critical pure functions (authentication, utilities, middleware).
 - **Integration Tests**: Complex stateful hooks (`useTasks`, `useAuth`).
 - **E2E Tests**: Complete user flows (login, dashboard navigation, protected routes).
-- **Total**: 31 tests, ensuring >80% coverage on critical business logic.
+- **Total**: 33 tests (26 unit + 7 E2E), covering auth, RBAC, task pagination and the dashboard.
 
 ---
 

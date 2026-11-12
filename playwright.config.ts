@@ -25,7 +25,9 @@ export default defineConfig({
       ...process.env,
       PORT: String(TEST_SERVER_PORT),
       DATABASE_URL: testDatabaseUrl,
-      NODE_ENV: 'test',
+      // Keep Next in development mode so .env.local is loaded; DATABASE_URL
+      // is still overridden above with the isolated test URL.
+      NODE_ENV: 'development',
     },
   },
   projects: [
