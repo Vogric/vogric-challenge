@@ -13,7 +13,11 @@ const container = {
 
 const item = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring' as const, stiffness: 260, damping: 24 },
+  },
 }
 
 export function StatsGrid({ stats }: { stats: StatCardProps[] }) {

@@ -45,7 +45,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={shouldReduceMotion ? undefined : { opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              transition={{ type: 'spring' as const, stiffness: 320, damping: 30 }}
             >
               {children}
             </m.div>
