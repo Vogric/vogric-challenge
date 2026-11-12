@@ -1,9 +1,11 @@
 'use client'
 
-import React from 'react'
 import type { Task, TaskStatus } from '@/hooks/useTasks'
 
-type OnStatusChange = (id: string, status: TaskStatus) => void
+type TaskTableProps = {
+  items: Task[]
+  onStatusChange: (id: string, status: TaskStatus) => void
+}
 
 const STATUS_OPTIONS: Array<{ value: TaskStatus; label: string }> = [
   { value: 'todo', label: 'To Do' },
@@ -17,18 +19,7 @@ function formatUpdatedAt(iso: string): string {
   return date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
 }
 
-/**
- * Standard paginated table. The previous react-virtual implementation
- * double-translated rows and was not reliable; pagination is the correct
- * baseline until virtualization has dedicated tests.
- */
-export function VirtualizedTable({
-  items,
-  onStatusChange,
-}: {
-  items: Task[]
-  onStatusChange: OnStatusChange
-}) {
+export function TaskTable({ items, onStatusChange }: TaskTableProps) {
   if (items.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">

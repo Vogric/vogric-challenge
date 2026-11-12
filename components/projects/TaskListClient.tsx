@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useTasks, useUpdateTaskStatus } from '@/hooks/useTasks'
-import { VirtualizedTable } from '@/components/projects/VirtualizedTable'
+import { TaskTable } from '@/components/projects/TaskTable'
+import { TaskPagination } from '@/components/projects/TaskPagination'
 
 const PAGE_SIZE = 50
 
@@ -12,7 +13,7 @@ type TaskListClientProps = {
 
 export function TaskListClient({ orgId }: TaskListClientProps) {
   const [page, setPage] = useState(1)
-  const { data, isLoading, isError, error } = useTasks(orgId, page, PAGE_SIZE)
+  const { data, isLoading, isError } = useTasks(orgId, page, PAGE_SIZE)
   const { mutate: updateStatus, isPending } = useUpdateTaskStatus(orgId)
 
   if (isLoading) {
@@ -26,7 +27,7 @@ export function TaskListClient({ orgId }: TaskListClientProps) {
   if (isError) {
     return (
       <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
-        Could not load tasks: {error instanceof Error ? error.message : 'unknown error'}
+        Could not load tasks. Please try again.
       </div>
     )
   }
@@ -45,36 +46,19 @@ export function TaskListClient({ orgId }: TaskListClientProps) {
         </span>
       </div>
 
-      <VirtualizedTable
+      <TaskTable
         items={tasks}
         onStatusChange={(id, status) => {
           updateStatus({ taskId: id, status })
         }}
       />
 
-      {pagination && pagination.totalPages > 1 && (
-        <nav className="flex items-center justify-between gap-3" aria-label="Tasks pagination">
-          <button
-            type="button"
-            onClick={() => setPage((current) => Math.max(1, current - 1))}
-            disabled={page <= 1}
-            className="rounded-md border border-border px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Previous
-          </button>
-          <span className="text-sm text-muted-foreground">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            type="button"
-            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-            disabled={page >= totalPages}
-            className="rounded-md border border-border px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Next
-          </button>
-        </nav>
-      )}
+      <TaskPagination
+        page={page}
+        totalPages={totalPages}
+        onPrevious={() => setPage((current) => Math.max(1, current - 1))}
+        onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
+      />
 
       {isPending && <p className="text-sm text-muted-foreground">Updating task status...</p>}
     </div>

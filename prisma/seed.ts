@@ -3,9 +3,8 @@ import bcrypt from 'bcryptjs'
 
 const db = new PrismaClient()
 
-// Un seed nunca debe ejecutarse contra producción. El chequeo es deliberadamente
-// temprano: si el entorno está mal configurado, preferimos abortar antes de
-// escribir una sola fila.
+// A seed must never run against production. The check is deliberately early:
+// if the environment is wrong, abort before writing a single row.
 if (process.env.NODE_ENV === 'production') {
   console.error('❌ Refusing to run the seed with NODE_ENV=production.')
   process.exit(1)

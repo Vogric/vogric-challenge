@@ -1,11 +1,11 @@
 # SaaS Dashboard: Senior React/Next.js Demo 🚀
 
+**Live Demo:** <https://vogric-challenge.vercel.app> · **Credentials:** `demo@example.com` / `password123`
+
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 ![Tests](https://img.shields.io/badge/Tests-33%20passing-brightgreen.svg)
-
-**[Live Demo](https://your-project.vercel.app)** • Credentials: `demo@example.com` / `password123`
 
 ---
 
@@ -76,7 +76,7 @@ npm run dev
 
 ## Architecture Decisions
 
-- **Custom JWT over NextAuth v4**: Provides full control over the authentication flow, HttpOnly cookies, and reduces reliance on heavy third-party libraries that struggle with Next.js 14 App Router.
+- **Custom JWT with `jose`**: Provides full control over the authentication flow and HttpOnly cookies without relying on a heavy third-party auth layer.
 - **Partitioned Context API over Zustand/Redux**: For static UI state (auth, theme, notifications), partitioned Context is sufficient, native, and avoids unnecessary bundle size.
 - **Offset Pagination**: Ideal for datasets under 10k records. Cursor-based pagination is documented as the migration path for larger datasets.
 - **Server Components by Default**: Minimizes client-side JavaScript bundle size and improves initial load performance.

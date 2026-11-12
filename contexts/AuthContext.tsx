@@ -24,7 +24,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: fetchCurrentUser,
-    staleTime: 1000 * 60 * 5,
+    // Never serve a stale null from the login page after the cookie was set.
+    staleTime: 0,
+    refetchOnMount: 'always',
     retry: 1,
   })
 

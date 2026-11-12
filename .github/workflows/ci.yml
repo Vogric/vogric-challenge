@@ -21,8 +21,6 @@ jobs:
       # Prisma generate/build do not connect, but the schema requires the variable.
       DATABASE_URL: postgresql://ci:ci@localhost:5432/saas_dashboard?schema=public
       JWT_SECRET: ci-jwt-secret-0123456789abcdef0123456789
-      NEXTAUTH_SECRET: ci-nextauth-secret-0123456789abcdef012345
-      NEXTAUTH_URL: http://localhost:3000
     steps:
       - name: Checkout
         uses: actions/checkout@v4

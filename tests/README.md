@@ -6,7 +6,6 @@
    - `DATABASE_URL` (development database)
    - `DATABASE_URL_TEST` (isolated database; its name **must** contain `test`)
    - `JWT_SECRET` (minimum 32 characters)
-   - `NEXTAUTH_SECRET` (minimum 32 characters)
 
 2. Create the isolated local database once (example with local PostgreSQL):
    ```bash

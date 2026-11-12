@@ -68,7 +68,8 @@ export async function PATCH(
     })
 
     return Response.json({ task: updatedTask }, { status: 200 })
-  } catch {
+  } catch (error) {
+    console.error('Failed to update task', error)
     return Response.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -2,40 +2,9 @@ import { redirect } from 'next/navigation'
 import { getCurrentUserFromServer } from '@/lib/auth'
 import { getActiveMembership } from '@/lib/organizations'
 import { db } from '@/lib/db'
+import { StatCard } from '@/components/dashboard/stat-card'
 
 export const dynamic = 'force-dynamic'
-
-type StatCardProps = {
-  title: string
-  value: string | number
-  description: string
-  valueTestId: string
-  accent?: 'primary' | 'destructive' | 'secondary' | 'success'
-}
-
-function StatCard({ title, value, description, valueTestId, accent = 'primary' }: StatCardProps) {
-  const accentClass = {
-    primary: 'bg-primary text-primary-foreground',
-    destructive: 'bg-destructive text-destructive-foreground',
-    secondary: 'bg-secondary text-secondary-foreground',
-    success: 'bg-green-600 text-green-100',
-  }[accent]
-
-  return (
-    <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-      <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{title}</h2>
-        <span
-          data-testid={valueTestId}
-          className={`rounded-full px-2 py-0.5 text-xs tabular-nums ${accentClass}`}
-        >
-          {value}
-        </span>
-      </div>
-      <p className="text-sm text-muted-foreground">{description}</p>
-    </div>
-  )
-}
 
 export default async function DashboardHomePage() {
   const user = await getCurrentUserFromServer()

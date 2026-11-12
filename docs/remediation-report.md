@@ -7,7 +7,7 @@ Alcance: P0 (seguridad, aislamiento, funcionalidad, RBAC) + P1 (datos reales, li
 
 | Punto | Estado | Evidencia |
 |---|---|---|
-| P0.1 JWT/Auth hardening | Hecho | `lib/auth.ts` exige `JWT_SECRET` y `NEXTAUTH_SECRET` de ≥32 caracteres; no hay fallback. |
+| P0.1 JWT/Auth hardening | Hecho | `lib/auth.ts` exige `JWT_SECRET` de ≥32 caracteres; no hay fallback. |
 | P0.2 Environment isolation | Hecho | `DATABASE_URL_TEST`; Playwright en puerto 3100 con `globalSetup` que resetea y seedea solo una DB cuyo nombre contiene `test`; `seed.ts` aborta con `NODE_ENV=production`. |
 | P0.3 Tasks API + hook + table | Hecho | Zod coerce/default, 400 claro, respuesta `{ tasks, pagination }`, cache key por organización, tabla paginada estándar. |
 | P0.4 RBAC | Hecho | `PATCH /api/dashboard/tasks/[id]` exige `ADMIN` o `MANAGER`; `VIEWER` recibe 403. |
@@ -35,8 +35,8 @@ también demuestra el aislamiento de la base.
 
 ## Cambios de comportamiento
 
-- `JWT_SECRET` y `NEXTAUTH_SECRET` son obligatorios desde el arranque. Un deploy
-  sin ellos falla en vez de firmar tokens con un secreto público.
+- `JWT_SECRET` es obligatorio desde el arranque. Un deploy sin él falla en vez
+  de firmar tokens con un secreto público.
 - `npm run seed` se niega a ejecutarse con `NODE_ENV=production`.
 - `GET /api/dashboard/tasks` acepta `page` y `pageSize` opcionales; sin
   parámetros usa 1 y 50. Valores no numéricos devuelven 400, no 500.
@@ -75,3 +75,19 @@ desarrollo/Neon: la validación se hizo sobre `saas_dashboard_test`.
 5. **Members/Settings**: siguen siendo stubs.
 6. **Observabilidad**: los `catch` devuelven 500 sin logging estructurado.
 7. **Rate limit**: sigue en memoria por instancia y usa `x-forwarded-for`.
+
+
+## Production auth fix (post-sprint)
+
+- `AuthContext` already used `credentials: 'include'` and `cache: 'no-store'`;
+  the issue was not the client fetch.
+- Session cookie changed from `SameSite=None` to `SameSite=Lax` (first-party
+  dashboard; `X-Frame-Options: DENY` prevents embedding).
+- `/api/auth/me` now sends `Cache-Control: private, no-store` and `Vary: Cookie`
+  so a CDN/browser cannot reuse an unauthenticated response.
+- `currentUser` query uses `staleTime: 0` and `refetchOnMount: 'always'` to
+  avoid a stale `null` after login.
+- Logout sends `credentials: 'include'`.
+- E2E happy path now verifies the cookie, `/api/auth/me`, the navbar email and
+  a full reload with dashboard data.
+- Vercel environment checks: `docs/production-auth-checklist.md`.

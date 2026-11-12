@@ -10,7 +10,7 @@ const querySchema = z.object({
   pageSize: z.coerce.number().int().positive().max(100).default(50),
 })
 
-export async function GET(req: Request) {
+async function listTasks(req: Request) {
   const user = await getCurrentUserFromRequest(req)
   if (!user) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
@@ -79,4 +79,13 @@ export async function GET(req: Request) {
       totalPages: Math.ceil(totalCount / pageSize),
     },
   }, { status: 200 })
+}
+
+export async function GET(req: Request) {
+  try {
+    return await listTasks(req)
+  } catch (error) {
+    console.error('Failed to list tasks', error)
+    return Response.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }

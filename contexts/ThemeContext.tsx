@@ -18,14 +18,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const root = window.document.documentElement
-    const resolved =
-      theme === 'system'
-        ? window.matchMedia('(prefers-color-scheme: dark)').matches
-          ? 'dark'
-          : 'light'
-        : theme
-    root.classList.toggle('dark', resolved === 'dark')
-    setResolvedTheme(resolved)
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+
+    const applyTheme = () => {
+      const resolved = theme === 'system' ? (media.matches ? 'dark' : 'light') : theme
+      root.classList.toggle('dark', resolved === 'dark')
+      setResolvedTheme(resolved)
+    }
+
+    applyTheme()
+    if (theme === 'system') media.addEventListener('change', applyTheme)
+    return () => media.removeEventListener('change', applyTheme)
   }, [theme])
 
   const value = useMemo<ThemeContextValue>(
@@ -38,7 +41,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export function useTheme() {
   const context = useContext(ThemeContext)
-  if (!context) throw new Error('useTheme debe usarse dentro de ThemeProvider')
+  if (!context) throw new Error('useTheme must be used within ThemeProvider')
   return context
 }
 

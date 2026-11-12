@@ -1,12 +1,7 @@
-import { z } from 'zod'
 import { compare } from 'bcryptjs'
 import { createJWT, setSessionCookie } from '@/lib/auth'
 import { db } from '@/lib/db'
-
-const loginSchema = z.object({
-  email: z.string().email('Invalid email'),
-  password: z.string().min(8, 'Minimum 8 characters'),
-})
+import { loginSchema } from '@/lib/validations/auth'
 
 export async function POST(req: Request) {
   try {
@@ -49,7 +44,8 @@ export async function POST(req: Request) {
     setSessionCookie(response, token)
 
     return response
-  } catch {
+  } catch (error) {
+    console.error('Login failed', error)
     return Response.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

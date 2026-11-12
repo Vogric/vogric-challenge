@@ -12,7 +12,7 @@ vi.mock('jose', () => ({
     payload: { userId: 'user-123', email: 'test@example.com', name: 'Test User' },
     protectedHeader: { alg: 'HS256' },
     signature: 'mock-signature',
-  } as any),
+  } as unknown as Awaited<ReturnType<typeof jwtVerify>>),
 }))
 
 // Mock Prisma db
@@ -35,7 +35,7 @@ describe('Auth', () => {
       payload: { userId: 'user-123', email: 'test@example.com', name: 'Test User' },
       protectedHeader: { alg: 'HS256' },
       signature: 'mock-signature',
-    } as any)
+    } as unknown as Awaited<ReturnType<typeof jwtVerify>>)
     vi.mocked(db.user.findUnique).mockResolvedValue(null)
   })
 
@@ -45,7 +45,16 @@ describe('Auth', () => {
 
   describe('createJWT', () => {
     it('should return a valid JWT string', async () => {
-      const user = { id: 'user-123', email: 'test@example.com', name: 'Test User' } as any
+      const user = {
+        id: 'user-123',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        emailVerified: null,
+        password: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
 
       const token = await createJWT(user)
 
@@ -73,7 +82,16 @@ describe('Auth', () => {
 
   describe('getCurrentUserFromToken', () => {
     it('should return user if token is valid and user exists in DB', async () => {
-      const user = { id: 'user-123', email: 'test@example.com', name: 'Test User' } as any
+      const user = {
+        id: 'user-123',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        emailVerified: null,
+        password: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
 
       vi.mocked(db.user.findUnique).mockResolvedValue(user)
 
@@ -96,7 +114,7 @@ describe('Auth', () => {
     it('should return null if user does not exist in DB', async () => {
       vi.mocked(db.user.findUnique).mockResolvedValue(null)
 
-      const token = await createJWT({ id: 'user-999', email: 'x@y.com', name: 'X' } as any)
+      const token = await createJWT({ id: 'user-999', email: 'x@y.com', name: 'X' })
       const result = await getCurrentUserFromToken(token)
 
       expect(result).toBeNull()
