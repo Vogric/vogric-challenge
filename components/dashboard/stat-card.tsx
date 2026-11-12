@@ -1,4 +1,4 @@
-type StatCardProps = {
+export type StatCardProps = {
   title: string
   value: string | number
   description: string
@@ -23,7 +23,7 @@ export function StatCard({
   return (
     <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{title}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
         <span
           data-testid={valueTestId}
           className={`rounded-full px-2 py-0.5 text-xs tabular-nums ${ACCENT_CLASSES[accent]}`}

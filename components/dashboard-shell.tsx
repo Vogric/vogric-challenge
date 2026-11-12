@@ -2,11 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { AnimatePresence, m, useReducedMotion } from 'framer-motion'
 import { Sidebar } from '@/components/sidebar'
 import { Navbar } from '@/components/navbar'
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const shouldReduceMotion = useReducedMotion()
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background">
@@ -37,7 +39,17 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               Projects
             </Link>
           </nav>
-          {children}
+          <AnimatePresence mode="wait" initial={false}>
+            <m.div
+              key={pathname}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={shouldReduceMotion ? undefined : { opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {children}
+            </m.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>

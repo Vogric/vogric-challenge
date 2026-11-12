@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import React from 'react'
 import { renderHook, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useTasks, useUpdateTaskStatus, type TasksResponse } from '@/hooks/useTasks'
+import { useTasks, useUpdateTaskStatus } from '@/hooks/useTasks'
+import { taskKeys } from '@/lib/query-keys'
+import type { TasksResponse } from '@/types/tasks'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 
 // Mock fetch globally
@@ -89,7 +91,7 @@ describe('useUpdateTaskStatus', () => {
   })
 
   it('should optimistically update the current organization page and rollback on error', async () => {
-    queryClient.setQueryData(['tasks', 'org-123', 1, 50], mockResponse)
+    queryClient.setQueryData(taskKeys.list('org-123', 1, 50), mockResponse)
 
     mockFetch.mockRejectedValueOnce(new Error('Server error'))
 
@@ -105,11 +107,11 @@ describe('useUpdateTaskStatus', () => {
       result.current.mutate({ taskId: 'task-1', status: 'done' })
     })
 
-    expect(queryClient.getQueryData(['tasks', 'org-123', 1, 50])).toEqual(mockResponse)
+    expect(queryClient.getQueryData(taskKeys.list('org-123', 1, 50))).toEqual(mockResponse)
   })
 
   it('should keep the optimistic update on success', async () => {
-    queryClient.setQueryData(['tasks', 'org-123', 1, 50], mockResponse)
+    queryClient.setQueryData(taskKeys.list('org-123', 1, 50), mockResponse)
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -130,7 +132,7 @@ describe('useUpdateTaskStatus', () => {
       result.current.mutate({ taskId: 'task-1', status: 'done' })
     })
 
-    const current = queryClient.getQueryData<TasksResponse>(['tasks', 'org-123', 1, 50])
+    const current = queryClient.getQueryData<TasksResponse>(taskKeys.list('org-123', 1, 50))
     expect(current?.tasks[0].status).toBe('done')
   })
 })

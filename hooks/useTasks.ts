@@ -2,27 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNotifications } from '@/hooks/useNotifications'
-
-export type TaskStatus = 'todo' | 'in_progress' | 'done'
-
-export type Task = {
-  id: string
-  title: string
-  status: TaskStatus
-  updatedAt: string
-}
-
-export type TasksPagination = {
-  page: number
-  pageSize: number
-  totalCount: number
-  totalPages: number
-}
-
-export type TasksResponse = {
-  tasks: Task[]
-  pagination: TasksPagination
-}
+import { taskKeys } from '@/lib/query-keys'
+import type { Task, TasksResponse, TaskStatus } from '@/types/tasks'
 
 type UpdateTaskStatusInput = {
   taskId: string
@@ -67,9 +48,12 @@ async function updateTaskStatus(input: UpdateTaskStatusInput): Promise<Task> {
 
 export function useTasks(orgId: string | null, page = 1, pageSize = 50) {
   return useQuery({
-    queryKey: ['tasks', orgId, page, pageSize],
-    queryFn: () => fetchTasks(orgId!, page, pageSize),
-    enabled: !!orgId,
+    queryKey: taskKeys.list(orgId, page, pageSize),
+    queryFn: () => {
+      if (!orgId) throw new Error('orgId is required to fetch tasks')
+      return fetchTasks(orgId, page, pageSize)
+    },
+    enabled: Boolean(orgId),
     staleTime: 1000 * 60 * 2,
   })
 }
@@ -77,7 +61,7 @@ export function useTasks(orgId: string | null, page = 1, pageSize = 50) {
 export function useUpdateTaskStatus(orgId: string) {
   const queryClient = useQueryClient()
   const { addNotification } = useNotifications()
-  const queryKey = ['tasks', orgId] as const
+  const queryKey = taskKeys.byOrg(orgId)
 
   return useMutation({
     mutationFn: updateTaskStatus,

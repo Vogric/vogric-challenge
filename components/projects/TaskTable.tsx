@@ -1,6 +1,6 @@
 'use client'
 
-import type { Task, TaskStatus } from '@/hooks/useTasks'
+import type { Task, TaskStatus } from '@/types/tasks'
 
 type TaskTableProps = {
   items: Task[]
@@ -31,7 +31,7 @@ export function TaskTable({ items, onStatusChange }: TaskTableProps) {
   return (
     <div className="overflow-x-auto rounded-lg border border-border bg-card shadow-sm">
       <table className="w-full border-collapse text-left text-sm">
-        <thead className="border-b bg-muted/50 text-muted-foreground">
+        <thead className="border-b bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
           <tr>
             <th scope="col" className="px-4 py-3 font-medium">ID</th>
             <th scope="col" className="px-4 py-3 font-medium">Title</th>
@@ -41,7 +41,7 @@ export function TaskTable({ items, onStatusChange }: TaskTableProps) {
         </thead>
         <tbody>
           {items.map((task) => (
-            <tr key={task.id} className="border-b last:border-0 hover:bg-accent/50">
+            <tr key={task.id} className="border-b transition-colors duration-150 last:border-0 hover:bg-muted/50">
               <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{task.id}</td>
               <td className="px-4 py-3 font-medium">{task.title}</td>
               <td className="px-4 py-3">

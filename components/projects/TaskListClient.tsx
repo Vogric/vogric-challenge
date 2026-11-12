@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTasks, useUpdateTaskStatus } from '@/hooks/useTasks'
 import { TaskTable } from '@/components/projects/TaskTable'
 import { TaskPagination } from '@/components/projects/TaskPagination'
+import { TaskTableSkeleton } from '@/components/projects/TaskTableSkeleton'
 
 const PAGE_SIZE = 50
 
@@ -18,8 +19,9 @@ export function TaskListClient({ orgId }: TaskListClientProps) {
 
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <p className="text-muted-foreground">Loading tasks...</p>
+      <div className="space-y-4" aria-busy="true">
+        <div className="skeleton-shimmer h-8 w-40 rounded-md" />
+        <TaskTableSkeleton />
       </div>
     )
   }
@@ -40,7 +42,7 @@ export function TaskListClient({ orgId }: TaskListClientProps) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Tasks</h1>
-        <span className="text-xs font-medium text-muted-foreground">
+        <span className="text-xs font-medium tabular-nums text-muted-foreground">
           {pagination?.totalCount ?? tasks.length} task
           {(pagination?.totalCount ?? tasks.length) === 1 ? '' : 's'}
         </span>
