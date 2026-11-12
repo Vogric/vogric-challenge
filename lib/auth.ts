@@ -3,6 +3,9 @@ import { cookies } from 'next/headers'
 import { db } from '@/lib/db'
 
 const MIN_SECRET_LENGTH = 32
+// Un dashboard operativo no necesita sesiones de 30 días: 7 días reduce la
+// ventana de un token robado sin obligar a reautenticarse en cada jornada.
+const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60
 
 function readRequiredSecret(name: 'JWT_SECRET' | 'NEXTAUTH_SECRET'): string {
   const value = process.env[name]
@@ -40,7 +43,7 @@ export async function createJWT(user: {
   role?: string
 }) {
   const iat = Math.floor(Date.now() / 1000)
-  const exp = iat + 30 * 24 * 60 * 60 // 30 days
+  const exp = iat + SESSION_MAX_AGE_SECONDS
 
   return await new SignJWT({ userId: user.id, email: user.email, name: user.name, role: user.role })
     .setProtectedHeader({ alg: JWT_ALG })
@@ -62,7 +65,7 @@ export function setSessionCookie(response: Response, token: string) {
   const isProduction = process.env.NODE_ENV === 'production'
   response.headers.set(
     'Set-Cookie',
-    `session=${token}; Path=/; HttpOnly; SameSite=${isProduction ? 'None' : 'Lax'}; Max-Age=2592000${isProduction ? '; Secure' : ''}`
+    `session=${token}; Path=/; HttpOnly; SameSite=${isProduction ? 'None' : 'Lax'}; Max-Age=${SESSION_MAX_AGE_SECONDS}${isProduction ? '; Secure' : ''}`
   )
 }
 

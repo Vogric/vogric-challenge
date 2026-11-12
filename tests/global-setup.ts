@@ -15,7 +15,7 @@ export default async function globalSetup(): Promise<void> {
 
   console.log('[e2e] Preparing isolated test database (schema + fixtures)...')
 
-  execFileSync('npx', ['prisma', 'db', 'push', '--force-reset', '--skip-generate'], {
+  execFileSync('npx', ['prisma', 'migrate', 'reset', '--force', '--skip-seed'], {
     stdio: 'inherit',
     env,
   })

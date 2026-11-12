@@ -13,6 +13,9 @@ Alcance: P0 (seguridad, aislamiento, funcionalidad, RBAC) + P1 (datos reales, li
 | P0.4 RBAC | Hecho | `PATCH /api/dashboard/tasks/[id]` exige `ADMIN` o `MANAGER`; `VIEWER` recibe 403. |
 | P1.5 Dashboard real | Hecho | `Promise.all` de Prisma filtrado por la organización activa; sin números hardcodeados. |
 | P1.6 Lint + CI | Hecho | `.eslintrc.json`, `lint --max-warnings=0`, `.github/workflows/ci.yml`. |
+| P1.7 Migraciones versionadas | Hecho | Baseline `20241104120000_baseline_schema_sync`; `prisma/migrations/` fuera de `.gitignore`; E2E usa `migrate reset`. |
+| P1.8 Security headers | Hecho | `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy` y `Permissions-Policy` en `next.config.js`. |
+| P1.9 Sesión de 7 días | Hecho | JWT y cookie con `Max-Age=604800`; antes 30 días. |
 
 ## Verificación
 
@@ -22,6 +25,7 @@ npm run lint        -> OK (0 warnings)
 npm test            -> 26 unit tests passed
 npm run test:e2e    -> 7 E2E tests passed
 npm run build       -> OK
+npx prisma migrate reset --force --skip-seed (test DB) -> OK
 ```
 
 La suite E2E corre en `http://localhost:3100` contra `saas_dashboard_test`
@@ -43,20 +47,31 @@ también demuestra el aislamiento de la base.
   usuario (la más antigua) en vez de `acme-corp` hardcodeado.
 - El navbar muestra el email real del usuario; el login hidrata la cache de
   `currentUser` para evitar el “Guest” transitorio.
+- La sesión JWT y la cookie expiran a los 7 días (antes 30).
+- Todas las respuestas incluyen `X-Frame-Options: DENY`,
+  `X-Content-Type-Options: nosniff`,
+  `Referrer-Policy: strict-origin-when-cross-origin` y
+  `Permissions-Policy: camera=(), microphone=(), geolocation=()`.
+- `prisma/migrations/` ahora contiene un baseline limpio que refleja
+  `schema.prisma` (incluye `Task.createdAt/updatedAt` y todos los índices).
+
+## Migraciones: nota de adopción
+
+El baseline reemplaza las dos migraciones antiguas. En una base existente con
+historial de migraciones previo hay que reconciliar `_prisma_migrations` antes
+de un `migrate deploy` (o recrear la base desde el baseline, que es lo
+recomendado para este demo). No se ejecutó `migrate reset` sobre la base de
+desarrollo/Neon: la validación se hizo sobre `saas_dashboard_test`.
 
 ## Deuda pendiente (no incluida en este sprint)
 
-1. **Migraciones**: `prisma/migrations/` sigue en `.gitignore` y la migración
-   inicial de `Task` no incluye `createdAt/updatedAt`. Hay drift entre schema y
-   migraciones. Próximo paso: versionar migraciones y generar una migración de
-   reconciliación.
-2. **CVEs**: `next@14.2.35` tiene advisories críticos (RCE en Image
+1. **CVEs**: `next@14.2.35` tiene advisories críticos (RCE en Image
    Optimization, SSRF, cache poisoning, XSS, DoS). `zod@3.25.76` y
    `vitest@1.6.1` también. Ver `docs/security-upgrade.md`.
-3. **CSRF/headers**: la cookie usa `SameSite=None` en producción y no hay
-   validación de `Origin` ni CSP/HSTS/X-Frame-Options.
-4. **JWT de 30 días**: sin revocación ni refresh token; logout solo borra la
-   cookie.
+3. **CSRF/CSP**: quedan pendientes la validación de `Origin`/token CSRF y una
+   CSP; los headers básicos ya están.
+4. **Revocación de sesión**: JWT de 7 días sin denylist/refresh token; logout
+   solo borra la cookie.
 5. **Members/Settings**: siguen siendo stubs.
 6. **Observabilidad**: los `catch` devuelven 500 sin logging estructurado.
 7. **Rate limit**: sigue en memoria por instancia y usa `x-forwarded-for`.

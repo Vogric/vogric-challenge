@@ -23,7 +23,7 @@
    npm run test:e2e
    ```
 
-   The global setup runs `prisma db push --force-reset` and the seed against
+   The global setup runs `prisma migrate reset --force --skip-seed` and the seed against
    `DATABASE_URL_TEST` on port `3100`. It never reuses the development server
    and refuses to reset a database whose name does not contain `test`.
 
