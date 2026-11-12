@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Mock jose
-vi.mock('@/lib/auth', () => ({
+vi.mock('@/lib/jwt', () => ({
   verifyJWT: vi.fn(),
 }))
 
-import { verifyJWT } from '@/lib/auth'
+import { verifyJWT } from '@/lib/jwt'
 import { middleware } from './middleware'
 
 function createMockRequest(url: string, cookieHeader?: string): NextRequest {

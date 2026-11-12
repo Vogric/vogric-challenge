@@ -31,7 +31,7 @@ export function NotificationViewport() {
             aria-label="Dismiss notification"
             className="text-xs font-bold opacity-60 hover:opacity-100"
           >
-            ×
+            &times;
           </button>
         </div>
       ))}

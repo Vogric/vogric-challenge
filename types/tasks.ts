@@ -1,3 +1,5 @@
+export const TASK_PAGE_SIZE = 50
+
 export type TaskStatus = 'todo' | 'in_progress' | 'done'
 
 export type Task = {
@@ -12,6 +14,8 @@ export type TasksPagination = {
   pageSize: number
   totalCount: number
   totalPages: number
+  nextCursor?: string | null
+  hasNextPage?: boolean
 }
 
 export type TasksResponse = {

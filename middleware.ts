@@ -1,38 +1,11 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { verifyJWT } from '@/lib/auth'
+import { verifyJWT } from '@/lib/jwt'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 const WINDOW_MS = 60 * 1000
-const MAX_ATTEMPTS = 5
-const MAX_RATE_LIMIT_ENTRIES = 5000
-
-// Simple in-memory rate limit for the demo. A production deployment should use
-// a shared store (Redis/Upstash) so limits survive cold starts and instances.
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
-
-function isRateLimited(ip: string): { limited: boolean; remaining: number } {
-  const now = Date.now()
-  const record = rateLimitMap.get(ip)
-
-  if (!record || now >= record.resetTime) {
-    rateLimitMap.set(ip, { count: 1, resetTime: now + WINDOW_MS })
-    return { limited: false, remaining: MAX_ATTEMPTS - 1 }
-  }
-
-  if (record.count >= MAX_ATTEMPTS) {
-    return { limited: true, remaining: 0 }
-  }
-
-  record.count += 1
-
-  if (rateLimitMap.size > MAX_RATE_LIMIT_ENTRIES) {
-    rateLimitMap.forEach((value, key) => {
-      if (now >= value.resetTime) rateLimitMap.delete(key)
-    })
-  }
-
-  return { limited: false, remaining: MAX_ATTEMPTS - record.count }
-}
+// Keep production strict without making local/E2E login flows trip the limit.
+const MAX_ATTEMPTS = process.env.NODE_ENV === 'production' ? 5 : 50
 
 function parseCookies(cookieHeader: string | null): Record<string, string> {
   if (!cookieHeader) return {}
@@ -46,17 +19,34 @@ function parseCookies(cookieHeader: string | null): Record<string, string> {
   }, {})
 }
 
+function buildCsp(nonce: string): string {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    'upgrade-insecure-requests',
+  ].join('; ')
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
   const isAuthPage = pathname === '/auth/login'
   const isAuthRoute = pathname.startsWith('/api/auth/login')
   const isDashboard = pathname.startsWith('/dashboard')
+  const requiresAuth = isAuthPage || isDashboard
 
   const cookies = parseCookies(req.headers.get('cookie'))
   const token = cookies.session
   let payload: { userId?: string; email?: string } | null = null
 
-  if (token) {
+  if (requiresAuth && token) {
     try {
       payload = await verifyJWT(token)
     } catch {
@@ -68,8 +58,9 @@ export async function middleware(req: NextRequest) {
 
   // Rate limit only the login endpoint.
   if (isAuthRoute && req.method === 'POST') {
-    const ip = req.ip ?? req.headers.get('x-forwarded-for') ?? 'anonymous'
-    const rateLimit = isRateLimited(ip)
+    const forwardedFor = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    const ip = forwardedFor || req.headers.get('x-real-ip') || 'anonymous'
+    const rateLimit = await checkRateLimit(`rate-limit:login:${ip}`, MAX_ATTEMPTS, WINDOW_MS)
 
     if (rateLimit.limited) {
       return NextResponse.json(
@@ -87,9 +78,24 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/auth/login', req.url))
   }
 
-  return NextResponse.next()
+  const isProduction = process.env.NODE_ENV === 'production'
+  const nonce = crypto.randomUUID()
+  const requestId = req.headers.get('x-request-id') ?? crypto.randomUUID()
+  const csp = isProduction ? buildCsp(nonce) : null
+
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set('x-request-id', requestId)
+  if (csp) {
+    requestHeaders.set('x-nonce', nonce)
+    requestHeaders.set('Content-Security-Policy', csp)
+  }
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } })
+  response.headers.set('x-request-id', requestId)
+  if (csp) response.headers.set('Content-Security-Policy', csp)
+  return response
 }
 
 export const config = {
-  matcher: ['/auth/login', '/api/auth/login', '/dashboard/:path*'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }

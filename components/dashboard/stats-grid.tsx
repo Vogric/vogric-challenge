@@ -4,17 +4,15 @@ import { m, useReducedMotion } from 'framer-motion'
 import { StatCard, type StatCardProps } from '@/components/dashboard/stat-card'
 
 const container = {
-  hidden: { opacity: 0 },
+  hidden: {},
   show: {
-    opacity: 1,
     transition: { staggerChildren: 0.1 },
   },
 }
 
 const item = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { y: 16 },
   show: {
-    opacity: 1,
     y: 0,
     transition: { type: 'spring' as const, stiffness: 260, damping: 24 },
   },

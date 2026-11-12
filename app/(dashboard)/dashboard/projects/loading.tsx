@@ -1,12 +1,13 @@
+import { TaskTableSkeleton } from '@/components/projects/TaskTableSkeleton'
+
 export default function ProjectsLoading() {
   return (
-    <div className="space-y-6 animate-pulse">
-      <div className="h-8 w-48 rounded bg-muted"></div>
-      <div className="h-6 w-32 rounded bg-muted"></div>
-      <div className="h-96 rounded-lg border border-border bg-card shadow-sm">
-        <div className="h-8 w-full rounded bg-muted mx-4 my-2"></div>
-        <div className="h-8 w-3/4 rounded bg-muted mx-4 my-2"></div>
+    <div className="space-y-6" aria-busy="true">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
+        <p className="text-sm text-muted-foreground">Loading organization...</p>
       </div>
+      <TaskTableSkeleton rows={50} />
     </div>
   )
 }

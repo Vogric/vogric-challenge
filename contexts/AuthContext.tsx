@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { authKeys } from '@/lib/query-keys'
 
 type AuthContextValue = {
   user: { id: string; email: string; name?: string | null } | null
@@ -10,19 +11,23 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
-async function fetchCurrentUser() {
+type CurrentUserResponse = {
+  user: AuthContextValue['user']
+}
+
+async function fetchCurrentUser(): Promise<AuthContextValue['user']> {
   const res = await fetch('/api/auth/me', {
     cache: 'no-store',
     credentials: 'include',
   })
   if (!res.ok) return null
-  const data = await res.json()
+  const data = (await res.json()) as CurrentUserResponse
   return data.user ?? null
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data: user, isLoading } = useQuery({
-    queryKey: ['currentUser'],
+    queryKey: authKeys.currentUser,
     queryFn: fetchCurrentUser,
     // Never serve a stale null from the login page after the cookie was set.
     staleTime: 0,
@@ -32,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      user,
+      user: user ?? null,
       isLoading,
     }),
     [user, isLoading]

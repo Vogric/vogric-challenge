@@ -10,7 +10,7 @@ const ACCENT_CLASSES: Record<NonNullable<StatCardProps['accent']>, string> = {
   primary: 'bg-primary text-primary-foreground',
   destructive: 'bg-destructive text-destructive-foreground',
   secondary: 'bg-secondary text-secondary-foreground',
-  success: 'bg-green-600 text-green-100',
+  success: 'bg-green-700 text-white',
 }
 
 export function StatCard({

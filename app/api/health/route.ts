@@ -1,5 +1,10 @@
 import { db } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+const NO_STORE = { 'Cache-Control': 'no-store' }
+
 export async function GET() {
   let database = 'disconnected'
 
@@ -19,6 +24,6 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       database,
     },
-    { status: statusCode },
+    { status: statusCode, headers: NO_STORE },
   )
 }

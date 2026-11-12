@@ -1,19 +1,28 @@
 type TaskPaginationProps = {
   page: number
   totalPages: number
+  hasPreviousPage: boolean
+  hasNextPage: boolean
   onPrevious: () => void
   onNext: () => void
 }
 
-export function TaskPagination({ page, totalPages, onPrevious, onNext }: TaskPaginationProps) {
-  if (totalPages <= 1) return null
+export function TaskPagination({
+  page,
+  totalPages,
+  hasPreviousPage,
+  hasNextPage,
+  onPrevious,
+  onNext,
+}: TaskPaginationProps) {
+  if (!hasPreviousPage && !hasNextPage) return null
 
   return (
     <nav className="flex items-center justify-between gap-3" aria-label="Tasks pagination">
       <button
         type="button"
         onClick={onPrevious}
-        disabled={page <= 1}
+        disabled={!hasPreviousPage}
         className="rounded-md border border-border px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40"
       >
         Previous
@@ -24,7 +33,7 @@ export function TaskPagination({ page, totalPages, onPrevious, onNext }: TaskPag
       <button
         type="button"
         onClick={onNext}
-        disabled={page >= totalPages}
+        disabled={!hasNextPage}
         className="rounded-md border border-border px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40"
       >
         Next

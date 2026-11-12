@@ -65,9 +65,9 @@ desarrollo/Neon: la validación se hizo sobre `saas_dashboard_test`.
 
 ## Deuda pendiente (no incluida en este sprint)
 
-1. **CVEs**: `next@14.2.35` tiene advisories críticos (RCE en Image
-   Optimization, SSRF, cache poisoning, XSS, DoS). `zod@3.25.76` y
-   `vitest@1.6.1` también. Ver `docs/security-upgrade.md`.
+1. **CVEs**: Next.js was upgraded to 15.5.29 and no production-critical
+   advisories remain. `zod` (high) and dev-only `vitest`/`vite` findings are
+   tracked in `docs/security-upgrade.md`.
 3. **CSRF/CSP**: quedan pendientes la validación de `Origin`/token CSRF y una
    CSP; los headers básicos ya están.
 4. **Revocación de sesión**: JWT de 7 días sin denylist/refresh token; logout

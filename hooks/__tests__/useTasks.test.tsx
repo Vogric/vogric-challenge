@@ -7,7 +7,6 @@ import { taskKeys } from '@/lib/query-keys'
 import type { TasksResponse } from '@/types/tasks'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 
-// Mock fetch globally
 const mockFetch = vi.fn()
 global.fetch = mockFetch
 
@@ -54,8 +53,8 @@ describe('useTasks', () => {
     await waitForAsync(result, () => expect(result.current.data).toEqual(mockResponse))
 
     expect(mockFetch).toHaveBeenCalledWith(
-      '/api/dashboard/tasks?orgId=org-123&page=1&pageSize=50',
-      expect.objectContaining({ cache: 'no-store' })
+      '/api/dashboard/tasks?orgId=org-123&pageSize=50',
+      expect.objectContaining({ cache: 'no-store', signal: expect.any(AbortSignal) })
     )
   })
 
@@ -91,7 +90,7 @@ describe('useUpdateTaskStatus', () => {
   })
 
   it('should optimistically update the current organization page and rollback on error', async () => {
-    queryClient.setQueryData(taskKeys.list('org-123', 1, 50), mockResponse)
+    queryClient.setQueryData(taskKeys.cursor('org-123', null, 1), mockResponse)
 
     mockFetch.mockRejectedValueOnce(new Error('Server error'))
 
@@ -107,11 +106,11 @@ describe('useUpdateTaskStatus', () => {
       result.current.mutate({ taskId: 'task-1', status: 'done' })
     })
 
-    expect(queryClient.getQueryData(taskKeys.list('org-123', 1, 50))).toEqual(mockResponse)
+    expect(queryClient.getQueryData(taskKeys.cursor('org-123', null, 1))).toEqual(mockResponse)
   })
 
   it('should keep the optimistic update on success', async () => {
-    queryClient.setQueryData(taskKeys.list('org-123', 1, 50), mockResponse)
+    queryClient.setQueryData(taskKeys.cursor('org-123', null, 1), mockResponse)
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -132,7 +131,7 @@ describe('useUpdateTaskStatus', () => {
       result.current.mutate({ taskId: 'task-1', status: 'done' })
     })
 
-    const current = queryClient.getQueryData<TasksResponse>(taskKeys.list('org-123', 1, 50))
+    const current = queryClient.getQueryData<TasksResponse>(taskKeys.cursor('org-123', null, 1))
     expect(current?.tasks[0].status).toBe('done')
   })
 })

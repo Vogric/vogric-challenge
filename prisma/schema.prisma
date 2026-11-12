@@ -23,11 +23,11 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  memberships   Membership[]
+  accounts          Account[]
+  sessions          Session[]
+  memberships       Membership[]
   ownedOrganization Organization[] @relation("OrganizationOwner")
-  assignedTasks Task[] @relation("TaskAssignee")
+  assignedTasks     Task[]         @relation("TaskAssignee")
 }
 
 model Account {
@@ -66,54 +66,57 @@ model VerificationToken {
 }
 
 model Organization {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   name        String
-  slug        String   @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  slug        String       @unique
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   ownerId     String
-  owner       User     @relation("OrganizationOwner", fields: [ownerId], references: [id])
+  owner       User         @relation("OrganizationOwner", fields: [ownerId], references: [id])
   memberships Membership[]
   projects    Project[]
 }
 
 model Membership {
-  id            String   @id @default(cuid())
-  userId        String
+  id             String       @id @default(cuid())
+  userId         String
   organizationId String
-  role          Role     @default(VIEWER)
-  createdAt     DateTime @default(now())
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           Role         @default(VIEWER)
+  createdAt      DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([userId, organizationId])
   @@index([userId])
+  @@index([organizationId])
 }
 
 model Project {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
   organizationId String
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  tasks       Task[]
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  tasks          Task[]
 
   @@index([organizationId])
 }
 
 model Task {
-  id          String   @id @default(cuid())
-  title       String
-  status      String   @default("todo")
-  projectId   String
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assigneeId  String?
-  assignee    User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(cuid())
+  title      String
+  status     String   @default("todo")
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assigneeId String?
+  assignee   User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([projectId])
+  @@index([projectId, updatedAt])
   @@index([assigneeId])
+  @@index([status])
 }

@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Users, Settings, LogOut } from 'lucide-react'
 import { useLogout } from '@/hooks/useLogout'
+import { OrganizationSwitcher } from '@/components/organizations/organization-switcher'
+import type { MembershipSummary } from '@/types/organizations'
 
 const NAV_ITEMS = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -11,9 +13,14 @@ const NAV_ITEMS = [
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
-export function Sidebar() {
+type SidebarProps = {
+  memberships: MembershipSummary[]
+  activeOrganizationId: string | null
+}
+
+export function Sidebar({ memberships, activeOrganizationId }: SidebarProps) {
   const pathname = usePathname()
-  const logout = useLogout()
+  const { logout, isPending: isLoggingOut } = useLogout()
 
   return (
     <aside className="hidden w-72 flex-shrink-0 flex-col border-r border-border bg-background lg:flex">
@@ -27,11 +34,19 @@ export function Sidebar() {
         <button
           type="button"
           onClick={logout}
+          disabled={isLoggingOut}
+          aria-busy={isLoggingOut}
           aria-label="Sign out of your session"
-          className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
         >
           <LogOut className="h-5 w-5" />
         </button>
+      </div>
+      <div className="px-3 pb-4">
+        <OrganizationSwitcher
+          memberships={memberships}
+          activeOrganizationId={activeOrganizationId}
+        />
       </div>
       <nav className="flex-1 space-y-1 px-3">
         {NAV_ITEMS.map((item) => {

@@ -19,5 +19,18 @@ export default defineConfig({
       '@': path.resolve(__dirname, './'),
     },
     globals: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'lcov'],
+      reportsDirectory: 'coverage',
+      include: ['lib/**/*.ts', 'hooks/useTasks.ts', 'hooks/useNotifications.ts'],
+      exclude: ['**/__tests__/**', 'lib/db.ts', 'lib/query.ts'],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 70,
+        statements: 80,
+      },
+    },
   },
 })

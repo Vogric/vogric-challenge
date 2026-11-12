@@ -15,11 +15,25 @@ concurrency:
 
 jobs:
   quality:
-    name: Typecheck, lint, unit tests and build
+    name: Typecheck, lint, unit, E2E and build
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: saas
+          POSTGRES_PASSWORD: saas
+          POSTGRES_DB: saas_dashboard_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U saas -d saas_dashboard_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
-      # Prisma generate/build do not connect, but the schema requires the variable.
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/saas_dashboard?schema=public
+      DATABASE_URL: postgresql://saas:saas@localhost:5432/saas_dashboard?schema=public
+      DATABASE_URL_TEST: postgresql://saas:saas@localhost:5432/saas_dashboard_test?schema=public
       JWT_SECRET: ci-jwt-secret-0123456789abcdef0123456789
     steps:
       - name: Checkout
@@ -45,6 +59,15 @@ jobs:
 
       - name: Unit tests
         run: npm test
+
+      - name: Coverage gate
+        run: npm run test:coverage
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E tests
+        run: npm run test:e2e
 
       - name: Build
         run: npm run build

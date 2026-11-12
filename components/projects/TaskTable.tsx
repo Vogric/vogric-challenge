@@ -4,6 +4,7 @@ import type { Task, TaskStatus } from '@/types/tasks'
 
 type TaskTableProps = {
   items: Task[]
+  updatingTaskId?: string | null
   onStatusChange: (id: string, status: TaskStatus) => void
 }
 
@@ -13,13 +14,17 @@ const STATUS_OPTIONS: Array<{ value: TaskStatus; label: string }> = [
   { value: 'done', label: 'Done' },
 ]
 
+function isTaskStatus(value: string): value is TaskStatus {
+  return value === 'todo' || value === 'in_progress' || value === 'done'
+}
+
 function formatUpdatedAt(iso: string): string {
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return iso
   return date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
 }
 
-export function TaskTable({ items, onStatusChange }: TaskTableProps) {
+export function TaskTable({ items, updatingTaskId, onStatusChange }: TaskTableProps) {
   if (items.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
@@ -41,14 +46,24 @@ export function TaskTable({ items, onStatusChange }: TaskTableProps) {
         </thead>
         <tbody>
           {items.map((task) => (
-            <tr key={task.id} className="border-b transition-colors duration-150 last:border-0 hover:bg-muted/50">
+            <tr
+              key={task.id}
+              aria-busy={updatingTaskId === task.id}
+              className={`border-b transition-colors duration-150 last:border-0 hover:bg-muted/50 ${
+                updatingTaskId === task.id ? 'opacity-60' : ''
+              }`}
+            >
               <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{task.id}</td>
               <td className="px-4 py-3 font-medium">{task.title}</td>
               <td className="px-4 py-3">
                 <select
                   value={task.status}
+                  disabled={updatingTaskId === task.id}
                   aria-label={`Status for ${task.title}`}
-                  onChange={(event) => onStatusChange(task.id, event.target.value as TaskStatus)}
+                  onChange={(event) => {
+                    const nextStatus = event.target.value
+                    if (isTaskStatus(nextStatus)) onStatusChange(task.id, nextStatus)
+                  }}
                   className="rounded-md border border-input bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   {STATUS_OPTIONS.map((option) => (

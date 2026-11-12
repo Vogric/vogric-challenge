@@ -5,9 +5,19 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Loader2 } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { authKeys } from '@/lib/query-keys'
 import { loginSchema } from '@/lib/validations/auth'
+
+type LoginResponse = {
+  user: {
+    id: string
+    email: string
+    name?: string | null
+  }
+}
 
 export function LoginForm() {
   const router = useRouter()
@@ -15,6 +25,7 @@ export function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const emailRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
 
@@ -31,6 +42,7 @@ export function LoginForm() {
       return
     }
 
+    setIsSubmitting(true)
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
@@ -49,12 +61,14 @@ export function LoginForm() {
         return
       }
 
-      const data = await res.json()
-      queryClient.setQueryData(['currentUser'], data.user)
+      const data = (await res.json()) as LoginResponse
+      queryClient.setQueryData(authKeys.currentUser, data.user)
       await router.push('/dashboard')
       router.refresh()
     } catch {
       setError('Authentication error. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -75,7 +89,7 @@ export function LoginForm() {
               {error}
             </div>
           )}
-          <form id="login-form" className="space-y-4" onSubmit={handleSubmit} noValidate>
+          <form id="login-form" className="space-y-4" onSubmit={handleSubmit} noValidate aria-busy={isSubmitting}>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -85,6 +99,7 @@ export function LoginForm() {
                 autoComplete="email"
                 aria-invalid={Boolean(error)}
                 aria-describedby={error ? 'login-error' : undefined}
+                disabled={isSubmitting}
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 ref={emailRef}
@@ -95,17 +110,25 @@ export function LoginForm() {
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder={'\u2022'.repeat(8)}
                 autoComplete="current-password"
                 aria-invalid={Boolean(error)}
                 aria-describedby={error ? 'login-error' : undefined}
+                disabled={isSubmitting}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 ref={passwordRef}
               />
             </div>
-            <Button type="submit" className="w-full">
-              Sign in
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                  Signing in...
+                </>
+              ) : (
+                'Sign in'
+              )}
             </Button>
           </form>
         </CardContent>

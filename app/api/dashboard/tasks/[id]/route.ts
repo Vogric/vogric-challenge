@@ -2,6 +2,8 @@ import { z } from 'zod'
 import { getCurrentUserFromRequest } from '@/lib/auth'
 import { canManageTasks } from '@/lib/authz'
 import { db } from '@/lib/db'
+import { rejectCrossOrigin } from '@/lib/csrf'
+import { getRequestId, logError } from '@/lib/logger'
 
 const updateTaskSchema = z.object({
   status: z.enum(['todo', 'in_progress', 'done']),
@@ -9,15 +11,19 @@ const updateTaskSchema = z.object({
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
+  const csrfError = rejectCrossOrigin(req)
+  if (csrfError) return csrfError
+
   const user = await getCurrentUserFromRequest(req)
   if (!user) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    const body = await req.json()
+    const body: unknown = await req.json()
     const parsed = updateTaskSchema.safeParse(body)
 
     if (!parsed.success) {
@@ -27,7 +33,7 @@ export async function PATCH(
     const { status } = parsed.data
 
     const task = await db.task.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         status: true,
@@ -45,7 +51,6 @@ export async function PATCH(
       return Response.json({ error: 'Task not found' }, { status: 404 })
     }
 
-    // Verify membership and role via the included project relation.
     const membership = await db.membership.findFirst({
       where: {
         userId: user.id,
@@ -62,14 +67,17 @@ export async function PATCH(
     }
 
     const updatedTask = await db.task.update({
-      where: { id: params.id },
+      where: { id },
       data: { status },
       select: { id: true, status: true, title: true, updatedAt: true },
     })
 
     return Response.json({ task: updatedTask }, { status: 200 })
   } catch (error) {
-    console.error('Failed to update task', error)
+    logError('tasks.update.failed', {
+      requestId: getRequestId(req),
+      error: error instanceof Error ? error.message : String(error),
+    })
     return Response.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

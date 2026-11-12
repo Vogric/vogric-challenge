@@ -1,6 +1,14 @@
 'use client'
 
-import React, { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 
 export type Notification = {
   id: string
@@ -18,20 +26,44 @@ const NotificationContext = createContext<NotificationContextValue | undefined>(
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([])
+  const timeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
 
-  const addNotification = useMemo(() => (n: Omit<Notification, 'id'>) => {
-    const id = Math.random().toString(36).slice(2)
-    setNotifications((prev) => [...prev, { ...n, id }])
-    setTimeout(() => setNotifications((prev) => prev.filter((t) => t.id !== id)), 4000)
+  useEffect(() => {
+    const timeouts = timeoutsRef.current
+    return () => {
+      timeouts.forEach((timeout) => clearTimeout(timeout))
+      timeouts.clear()
+    }
   }, [])
 
-  const removeNotification = useMemo(() => (id: string) => {
-    setNotifications((prev) => prev.filter((t) => t.id !== id))
-  }, [])
+  const addNotification = useMemo(
+    () => (n: Omit<Notification, 'id'>) => {
+      const id = Math.random().toString(36).slice(2)
+      setNotifications((prev) => [...prev, { ...n, id }])
+
+      const timeout = setTimeout(() => {
+        setNotifications((prev) => prev.filter((item) => item.id !== id))
+        timeoutsRef.current.delete(id)
+      }, 4000)
+
+      timeoutsRef.current.set(id, timeout)
+    },
+    []
+  )
+
+  const removeNotification = useMemo(
+    () => (id: string) => {
+      const timeout = timeoutsRef.current.get(id)
+      if (timeout) clearTimeout(timeout)
+      timeoutsRef.current.delete(id)
+      setNotifications((prev) => prev.filter((item) => item.id !== id))
+    },
+    []
+  )
 
   const value = useMemo<NotificationContextValue>(
     () => ({ notifications, addNotification, removeNotification }),
-    [notifications]
+    [notifications, addNotification, removeNotification]
   )
 
   return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>

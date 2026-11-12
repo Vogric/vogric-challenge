@@ -25,7 +25,7 @@ export function loadEnvFile(file = '.env.local'): void {
 /**
  * Returns the isolated E2E database URL and refuses to continue if the
  * database name does not contain "test". This is a guardrail: the global
- * setup runs `prisma db push --force-reset`, so a typo must never point to a
+ * setup runs `prisma migrate reset`, so a typo must never point to a
  * real database.
  */
 export function getTestDatabaseUrl(): string {

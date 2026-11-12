@@ -1,64 +1,9 @@
-import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 import { db } from '@/lib/db'
+import { createJWT, verifyJWT, SESSION_MAX_AGE_SECONDS, type SessionPayload } from '@/lib/jwt'
 
-const MIN_SECRET_LENGTH = 32
-// An operational dashboard does not need 30-day sessions: seven days limits
-// the window of a stolen token without forcing a login every workday.
-const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60
-
-function readRequiredSecret(name: 'JWT_SECRET'): string {
-  const value = process.env[name]
-
-  if (!value || value.length < MIN_SECRET_LENGTH) {
-    throw new Error(
-      `${name} must be set and contain at least ${MIN_SECRET_LENGTH} characters. ` +
-        'Refusing to start with an insecure or missing secret.'
-    )
-  }
-
-  return value
-}
-
-// Fail at startup (not on the first request) when auth configuration is
-// insecure. There is no hardcoded fallback: a misconfigured deploy must break
-// instead of signing tokens with a public secret.
-const JWT_SECRET = new TextEncoder().encode(readRequiredSecret('JWT_SECRET'))
-const JWT_ALG = 'HS256'
-
-export type SessionPayload = {
-  userId: string
-  email: string
-  name?: string | null
-  role?: string
-  iat?: number
-  exp?: number
-}
-
-export async function createJWT(user: {
-  id: string
-  email: string
-  name?: string | null
-  role?: string
-}) {
-  const iat = Math.floor(Date.now() / 1000)
-  const exp = iat + SESSION_MAX_AGE_SECONDS
-
-  return await new SignJWT({ userId: user.id, email: user.email, name: user.name, role: user.role })
-    .setProtectedHeader({ alg: JWT_ALG })
-    .setIssuedAt(iat)
-    .setExpirationTime(exp)
-    .sign(JWT_SECRET)
-}
-
-export async function verifyJWT(token: string): Promise<SessionPayload | null> {
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET, { algorithms: [JWT_ALG] })
-    return payload as unknown as SessionPayload
-  } catch {
-    return null
-  }
-}
+export { createJWT, verifyJWT }
+export type { SessionPayload }
 
 export function setSessionCookie(response: Response, token: string) {
   const isProduction = process.env.NODE_ENV === 'production'
@@ -90,9 +35,20 @@ export async function getSessionFromCookie(cookieHeader: string | undefined): Pr
   return verifyJWT(token)
 }
 
+async function hasActiveSession(payload: SessionPayload): Promise<boolean> {
+  if (!payload.jti) return false
+
+  const session = await db.session.findUnique({
+    where: { sessionToken: payload.jti },
+    select: { expires: true },
+  })
+
+  return Boolean(session && session.expires > new Date())
+}
+
 export async function getCurrentUserFromToken(token: string) {
   const payload = await verifyJWT(token)
-  if (!payload) return null
+  if (!payload || !(await hasActiveSession(payload))) return null
 
   const user = await db.user.findUnique({
     where: { id: payload.userId },
@@ -106,7 +62,7 @@ export async function getCurrentUserFromRequest(request: Request) {
   if (!cookieHeader) return null
 
   const payload = await getSessionFromCookie(cookieHeader)
-  if (!payload) return null
+  if (!payload || !(await hasActiveSession(payload))) return null
 
   const user = await db.user.findUnique({
     where: { id: payload.userId },
@@ -115,8 +71,15 @@ export async function getCurrentUserFromRequest(request: Request) {
   return user
 }
 
+export async function revokeSessionFromCookie(cookieHeader: string | undefined) {
+  const payload = await getSessionFromCookie(cookieHeader)
+  if (!payload?.jti) return
+
+  await db.session.deleteMany({ where: { sessionToken: payload.jti } })
+}
+
 export async function getCurrentUserFromServer() {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const token = cookieStore.get('session')?.value ?? undefined
   if (!token) return null
 

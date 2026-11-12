@@ -3,9 +3,9 @@
 **Live Demo:** <https://vogric-challenge.vercel.app> · **Credentials:** `demo@example.com` / `password123`
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)
-![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)
+![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
-![Tests](https://img.shields.io/badge/Tests-33%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/Tests-69%20passing-brightgreen.svg)
 
 ---
 
@@ -22,7 +22,7 @@ SaaS Dashboard is a high-performance B2B administration panel built with modern 
 - **Paginated Task Table**: Server-paginated task lists (50 rows per page) with a standard accessible table. Full virtualization is intentionally deferred until it has dedicated performance tests.
 - **Partitioned State Management**: Focused, native React Contexts (Auth, Theme, Organization, Notification) optimized with `useMemo` to prevent unnecessary re-renders, avoiding heavy third-party state libraries.
 - **End-to-End Type Safety**: Zod schemas acting as the single source of truth, seamlessly shared between frontend forms and backend API validations.
-- **Comprehensive Testing Pyramid**: 33 automated tests (Unit, Integration, and E2E) ensuring reliability across critical business logic and user flows.
+- **Comprehensive Testing Pyramid**: 69 automated tests (Unit, Integration, and E2E) ensuring reliability across critical business logic and user flows.
 
 ---
 
@@ -30,7 +30,7 @@ SaaS Dashboard is a high-performance B2B administration panel built with modern 
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js 14 (App Router, Server Components, Streaming) |
+| Framework | Next.js 15 (App Router, Server Components, Streaming) |
 | Language | TypeScript (strict mode, zero `any`) |
 | Styling | Tailwind CSS v3.4 + shadcn/ui |
 | Server State | TanStack Query v5 |
@@ -41,6 +41,10 @@ SaaS Dashboard is a high-performance B2B administration panel built with modern 
 | CI/CD | GitHub Actions |
 
 ---
+
+## Architecture Decisions
+
+See [docs/adr](./docs/adr/README.md) and the [production runbook](./docs/runbook.md).
 
 ## Getting Started
 
@@ -102,7 +106,7 @@ tests/         # E2E tests (Playwright) & Unit tests (Vitest)
 - **Unit Tests**: Critical pure functions (authentication, utilities, middleware).
 - **Integration Tests**: Complex stateful hooks (`useTasks`, `useAuth`).
 - **E2E Tests**: Complete user flows (login, dashboard navigation, protected routes).
-- **Total**: 33 tests (26 unit + 7 E2E), covering auth, RBAC, task pagination and the dashboard.
+- **Total**: 69 tests (55 unit + 14 E2E), with a 92% line/statement coverage gate on `lib/` and critical hooks., covering auth, RBAC, task pagination and the dashboard.
 
 ---
 

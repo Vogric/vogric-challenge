@@ -80,7 +80,7 @@ export default async function DashboardHomePage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {membership.organization.name} · signed in as {membership.role.toLowerCase()}
+          {membership.organization.name} &middot; signed in as {membership.role.toLowerCase()}
         </p>
       </div>
 

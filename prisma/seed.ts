@@ -6,12 +6,12 @@ const db = new PrismaClient()
 // A seed must never run against production. The check is deliberately early:
 // if the environment is wrong, abort before writing a single row.
 if (process.env.NODE_ENV === 'production') {
-  console.error('❌ Refusing to run the seed with NODE_ENV=production.')
+  console.error('[error] Refusing to run the seed with NODE_ENV=production.')
   process.exit(1)
 }
 
 async function main() {
-  console.log('🌱 Starting seed...')
+  console.log('[seed] Starting seed...')
 
   const passwordHash = await bcrypt.hash('password123', 10)
 
@@ -25,7 +25,18 @@ async function main() {
       password: passwordHash,
     },
   })
-  console.log(`✓ Demo user: ${demoUser.email}`)
+  console.log(`[ok] Demo user: ${demoUser.email}`)
+
+  const viewerUser = await db.user.upsert({
+    where: { email: 'viewer@example.com' },
+    update: {},
+    create: {
+      email: 'viewer@example.com',
+      name: 'Viewer User',
+      password: passwordHash,
+    },
+  })
+  console.log(`[ok] Viewer user: ${viewerUser.email}`)
 
   // 2. Organizations (idempotent by slug)
   const acme = await db.organization.upsert({
@@ -37,7 +48,7 @@ async function main() {
       ownerId: demoUser.id,
     },
   })
-  console.log(`✓ Organization: ${acme.name} (owner: demo)`)
+  console.log(`[ok] Organization: ${acme.name} (owner: demo)`)
 
   const globex = await db.organization.upsert({
     where: { slug: 'globex' },
@@ -48,7 +59,7 @@ async function main() {
       ownerId: demoUser.id,
     },
   })
-  console.log(`✓ Organization: ${globex.name}`)
+  console.log(`[ok] Organization: ${globex.name}`)
 
   const initech = await db.organization.upsert({
     where: { slug: 'initech' },
@@ -59,7 +70,7 @@ async function main() {
       ownerId: demoUser.id,
     },
   })
-  console.log(`✓ Organization: ${initech.name}`)
+  console.log(`[ok] Organization: ${initech.name}`)
 
   // 3. Memberships (idempotent by @@unique [userId, organizationId])
   await db.membership.upsert({
@@ -71,7 +82,7 @@ async function main() {
       role: Role.ADMIN,
     },
   })
-  console.log(`✓ Membership: demo → Acme Corp (ADMIN)`)
+  console.log(`[ok] Membership: demo -> Acme Corp (ADMIN)`)
 
   await db.membership.upsert({
     where: { userId_organizationId: { userId: demoUser.id, organizationId: globex.id } },
@@ -82,7 +93,7 @@ async function main() {
       role: Role.MANAGER,
     },
   })
-  console.log(`✓ Membership: demo → Globex (MANAGER)`)
+  console.log(`[ok] Membership: demo -> Globex (MANAGER)`)
 
   await db.membership.upsert({
     where: { userId_organizationId: { userId: demoUser.id, organizationId: initech.id } },
@@ -93,9 +104,20 @@ async function main() {
       role: Role.VIEWER,
     },
   })
-  console.log(`✓ Membership: demo → Initech (VIEWER)`)
+  console.log(`[ok] Membership: demo -> Initech (VIEWER)`)
 
-  // 4. Projects: 5 per organization (15 total) — idempotent by (name, organizationId)
+  await db.membership.upsert({
+    where: { userId_organizationId: { userId: viewerUser.id, organizationId: initech.id } },
+    update: { role: Role.VIEWER },
+    create: {
+      userId: viewerUser.id,
+      organizationId: initech.id,
+      role: Role.VIEWER,
+    },
+  })
+  console.log(`[ok] Membership: viewer -> Initech (VIEWER)`)
+
+  // 4. Projects: 5 per organization (15 total) - idempotent by (name, organizationId)
   const projectNames = [
     'E-commerce Platform',
     'Mobile App v2',
@@ -131,10 +153,10 @@ async function main() {
     }
   }
   console.log(
-    `✓ Projects: ${projectsCreated} new, ${projectsSkipped} already existed`,
+    `[ok] Projects: ${projectsCreated} new, ${projectsSkipped} already existed`,
   )
 
-  // 5. Tasks: 20 per organization distributed across projects — idempotent
+  // 5. Tasks: 20 per organization distributed across projects - idempotent
   const statuses = ['todo', 'in_progress', 'done'] as const
   let tasksCreated = 0
   let tasksSkipped = 0
@@ -166,9 +188,9 @@ async function main() {
       tasksCreated++
     }
   }
-  console.log(`✓ Tasks: ${tasksCreated} new, ${tasksSkipped} already existed`)
+  console.log(`[ok] Tasks: ${tasksCreated} new, ${tasksSkipped} already existed`)
 
-  // 6. Extra: 2000 tasks in Acme Corp to demonstrate virtualization with real volume.
+  // 6. Extra: 2000 tasks in Acme Corp to exercise pagination with real volume.
   // In tests we keep the dataset small so E2E remains fast and deterministic.
   const bulkTaskCount = process.env.NODE_ENV === 'test' ? 0 : 2000
   const acmeProjects = await db.project.findMany({
@@ -199,15 +221,15 @@ async function main() {
     massiveCreated++
   }
   console.log(
-    `✓ Bulk tasks: ${massiveCreated} new, ${massiveSkipped} already existed (Acme Corp)`,
+    `[ok] Bulk tasks: ${massiveCreated} new, ${massiveSkipped} already existed (Acme Corp)`,
   )
 
-  console.log('✅ Seed completed successfully')
+  console.log('[ok] Seed completed successfully')
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error during seed:', e)
+    console.error('[error] Error during seed:', e)
     process.exit(1)
   })
   .finally(async () => {

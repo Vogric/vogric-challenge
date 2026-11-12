@@ -1,42 +1,59 @@
 import { z } from 'zod'
 import { getCurrentUserFromRequest } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { decodeTaskCursor, getTasksCursorPage, getTasksPage } from '@/lib/tasks'
+import { getRequestId, logError } from '@/lib/logger'
+import { TASK_PAGE_SIZE } from '@/types/tasks'
 
 export const dynamic = 'force-dynamic'
 
 const querySchema = z.object({
   orgId: z.string().min(1),
-  page: z.coerce.number().int().positive().max(100_000).default(1),
-  pageSize: z.coerce.number().int().positive().max(100).default(50),
+  page: z.coerce.number().int().positive().max(100_000).optional(),
+  cursor: z.string().max(500).optional(),
+  pageSize: z.coerce.number().int().positive().max(100).default(TASK_PAGE_SIZE),
 })
+
+const NO_STORE_HEADERS = {
+  'Cache-Control': 'private, no-store, max-age=0, must-revalidate',
+}
+
+function json(data: unknown, status: number) {
+  return Response.json(data, { status, headers: NO_STORE_HEADERS })
+}
 
 async function listTasks(req: Request) {
   const user = await getCurrentUserFromRequest(req)
   if (!user) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+    return json({ error: 'Unauthorized' }, 401)
   }
 
   const { searchParams } = new URL(req.url)
   const parsed = querySchema.safeParse({
     orgId: searchParams.get('orgId') ?? undefined,
     page: searchParams.get('page') ?? undefined,
+    cursor: searchParams.get('cursor') ?? undefined,
     pageSize: searchParams.get('pageSize') ?? undefined,
   })
 
   if (!parsed.success) {
-    return Response.json(
+    return json(
       {
         error: 'Invalid query parameters',
         details: parsed.error.flatten().fieldErrors,
       },
-      { status: 400 }
+      400
     )
   }
 
-  const { orgId, page, pageSize } = parsed.data
-  const skip = (page - 1) * pageSize
+  const { orgId, pageSize } = parsed.data
+  const page = parsed.data.page ?? 1
+  const cursor = parsed.data.cursor ? decodeTaskCursor(parsed.data.cursor) : null
 
-  // Verify membership
+  if (parsed.data.cursor && !cursor) {
+    return json({ error: 'Invalid cursor' }, 400)
+  }
+
   const membership = await db.membership.findFirst({
     where: {
       userId: user.id,
@@ -45,47 +62,25 @@ async function listTasks(req: Request) {
   })
 
   if (!membership) {
-    return Response.json({ error: 'Forbidden' }, { status: 403 })
+    return json({ error: 'Forbidden' }, 403)
   }
 
-  const [tasks, totalCount] = await Promise.all([
-    db.task.findMany({
-      where: {
-        project: { organizationId: orgId },
-      },
-      select: {
-        id: true,
-        title: true,
-        status: true,
-        updatedAt: true,
-      },
-      orderBy: { updatedAt: 'desc' },
-      skip,
-      take: pageSize,
-    }),
-    db.task.count({
-      where: {
-        project: { organizationId: orgId },
-      },
-    }),
-  ])
+  const result =
+    parsed.data.page && !parsed.data.cursor
+      ? await getTasksPage(orgId, page, pageSize)
+      : await getTasksCursorPage(orgId, cursor, page, pageSize)
 
-  return Response.json({
-    tasks,
-    pagination: {
-      page,
-      pageSize,
-      totalCount,
-      totalPages: Math.ceil(totalCount / pageSize),
-    },
-  }, { status: 200 })
+  return json(result, 200)
 }
 
 export async function GET(req: Request) {
   try {
     return await listTasks(req)
   } catch (error) {
-    console.error('Failed to list tasks', error)
-    return Response.json({ error: 'Internal server error' }, { status: 500 })
+    logError('tasks.list.failed', {
+      requestId: getRequestId(req),
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return json({ error: 'Internal server error' }, 500)
   }
 }

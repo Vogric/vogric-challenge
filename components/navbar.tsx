@@ -8,7 +8,7 @@ import { useLogout } from '@/hooks/useLogout'
 export function Navbar() {
   const { resolvedTheme, setTheme } = useTheme()
   const { user } = useAuth()
-  const logout = useLogout()
+  const { logout, isPending: isLoggingOut } = useLogout()
   const nextTheme = resolvedTheme === 'dark' ? 'light' : 'dark'
 
   return (
@@ -28,9 +28,11 @@ export function Navbar() {
           <button
             type="button"
             onClick={logout}
-            className="text-xs text-destructive hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            disabled={isLoggingOut}
+            aria-busy={isLoggingOut}
+            className="text-xs text-destructive hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Sign out
+            {isLoggingOut ? 'Signing out...' : 'Sign out'}
           </button>
         </div>
       </div>

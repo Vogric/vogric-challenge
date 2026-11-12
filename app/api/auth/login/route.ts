@@ -1,17 +1,31 @@
 import { compare } from 'bcryptjs'
-import { createJWT, setSessionCookie } from '@/lib/auth'
+import { setSessionCookie } from '@/lib/auth'
+import { createSessionToken } from '@/lib/jwt'
 import { db } from '@/lib/db'
 import { loginSchema } from '@/lib/validations/auth'
+import { rejectCrossOrigin } from '@/lib/csrf'
+import { getRequestId, logError } from '@/lib/logger'
+
+export const dynamic = 'force-dynamic'
+
+const NO_STORE = { 'Cache-Control': 'no-store' }
+
+function json(data: unknown, status: number) {
+  return Response.json(data, { status, headers: NO_STORE })
+}
 
 export async function POST(req: Request) {
+  const csrfError = rejectCrossOrigin(req)
+  if (csrfError) return csrfError
+
   try {
-    const body = await req.json()
+    const body: unknown = await req.json()
     const parsed = loginSchema.safeParse(body)
 
     if (!parsed.success) {
-      return Response.json(
+      return json(
         { error: 'Invalid input', details: parsed.error.flatten().fieldErrors },
-        { status: 400 }
+        400
       )
     }
 
@@ -23,29 +37,43 @@ export async function POST(req: Request) {
     })
 
     if (!user || !user.password) {
-      return Response.json({ error: 'Invalid credentials' }, { status: 401 })
+      return json({ error: 'Invalid credentials' }, 401)
     }
 
     const isValid = await compare(password, user.password)
     if (!isValid) {
-      return Response.json({ error: 'Invalid credentials' }, { status: 401 })
+      return json({ error: 'Invalid credentials' }, 401)
     }
 
-    const token = await createJWT({
+    const session = await createSessionToken({
       id: user.id,
       email: user.email,
       name: user.name,
     })
 
-    const response = Response.json(
+    await db.session.deleteMany({
+      where: { userId: user.id, expires: { lt: new Date() } },
+    })
+    await db.session.create({
+      data: {
+        sessionToken: session.jti,
+        userId: user.id,
+        expires: session.expiresAt,
+      },
+    })
+
+    const response = json(
       { user: { id: user.id, email: user.email, name: user.name } },
-      { status: 200 }
+      200
     )
-    setSessionCookie(response, token)
+    setSessionCookie(response, session.token)
 
     return response
   } catch (error) {
-    console.error('Login failed', error)
-    return Response.json({ error: 'Internal server error' }, { status: 500 })
+    logError('auth.login.failed', {
+      requestId: getRequestId(req),
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return json({ error: 'Internal server error' }, 500)
   }
 }

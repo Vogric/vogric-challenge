@@ -12,7 +12,7 @@ describe('cn', () => {
   })
 
   it('should handle undefined/null inputs gracefully', () => {
-    expect(cn('px-2', undefined as unknown as string, null as unknown as string, 'py-4')).toBe('px-2 py-4')
+    expect(cn('px-2', undefined, null, 'py-4')).toBe('px-2 py-4')
   })
 
   it('should handle empty input', () => {
