@@ -2,8 +2,26 @@ import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 import { db } from '@/lib/db'
 
-const jwtSecretString: string = process.env.JWT_SECRET ?? 'test-secret-min-32-chars-for-dev'
-const JWT_SECRET = new TextEncoder().encode(jwtSecretString)
+const MIN_SECRET_LENGTH = 32
+
+function readRequiredSecret(name: 'JWT_SECRET' | 'NEXTAUTH_SECRET'): string {
+  const value = process.env[name]
+
+  if (!value || value.length < MIN_SECRET_LENGTH) {
+    throw new Error(
+      `${name} must be set and contain at least ${MIN_SECRET_LENGTH} characters. ` +
+        'Refusing to start with an insecure or missing secret.'
+    )
+  }
+
+  return value
+}
+
+// Falla en el arranque (no en el primer request) si la configuración de auth
+// es insegura. No hay fallback hardcodeado: un deploy mal configurado debe
+// romper, no firmar tokens con un secreto público.
+const JWT_SECRET = new TextEncoder().encode(readRequiredSecret('JWT_SECRET'))
+readRequiredSecret('NEXTAUTH_SECRET')
 const JWT_ALG = 'HS256'
 
 export type SessionPayload = {

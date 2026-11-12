@@ -3,6 +3,14 @@ import bcrypt from 'bcryptjs'
 
 const db = new PrismaClient()
 
+// Un seed nunca debe ejecutarse contra producción. El chequeo es deliberadamente
+// temprano: si el entorno está mal configurado, preferimos abortar antes de
+// escribir una sola fila.
+if (process.env.NODE_ENV === 'production') {
+  console.error('❌ Refusing to run the seed with NODE_ENV=production.')
+  process.exit(1)
+}
+
 async function main() {
   console.log('🌱 Starting seed...')
 
@@ -142,7 +150,7 @@ async function main() {
       const project = projects[i % projects.length]
       const title = `Task ${i + 1} of ${project.name}`
       const existing = await db.task.findFirst({
-        where: { title },
+        where: { title, projectId: project.id },
       })
       if (existing) {
         tasksSkipped++
@@ -161,7 +169,9 @@ async function main() {
   }
   console.log(`✓ Tasks: ${tasksCreated} new, ${tasksSkipped} already existed`)
 
-  // 6. Extra: 2000 tasks in Acme Corp to demonstrate virtualization with real volume
+  // 6. Extra: 2000 tasks in Acme Corp to demonstrate virtualization with real volume.
+  // In tests we keep the dataset small so E2E remains fast and deterministic.
+  const bulkTaskCount = process.env.NODE_ENV === 'test' ? 0 : 2000
   const acmeProjects = await db.project.findMany({
     where: { organizationId: acme.id },
     select: { id: true, name: true },
@@ -169,7 +179,7 @@ async function main() {
   let massiveCreated = 0
   let massiveSkipped = 0
 
-  for (let i = 0; i < 2000; i++) {
+  for (let i = 0; i < bulkTaskCount; i++) {
     const project = acmeProjects[i % acmeProjects.length]
     const title = `Bulk Task ${i + 1} - ${project.name}`
     const existing = await db.task.findFirst({
