@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getCurrentUserFromServer } from '@/lib/auth'
+import { getRequestUser } from '@/lib/request-user'
 import { getActiveMembership } from '@/lib/organizations'
 import { db } from '@/lib/db'
 import { MembersTable } from '@/components/organizations/members-table'
@@ -7,7 +7,7 @@ import { MembersTable } from '@/components/organizations/members-table'
 export const dynamic = 'force-dynamic'
 
 export default async function MembersPage() {
-  const user = await getCurrentUserFromServer()
+  const user = await getRequestUser()
   if (!user) redirect('/auth/login')
 
   const activeMembership = await getActiveMembership(user.id)

@@ -21,7 +21,7 @@ export function TaskListClient({ orgId }: TaskListClientProps) {
   const [page, setPage] = useState(1)
   const [cursor, setCursor] = useState<string | null>(null)
   const [cursorHistory, setCursorHistory] = useState<Array<string | null>>([])
-  const { data, isLoading, isError, isFetching } = useTasks(orgId, page, TASK_PAGE_SIZE, cursor)
+  const { data, isLoading, isError, isFetching } = useTasks(orgId, TASK_PAGE_SIZE, cursor)
   const { mutate: updateStatus, isPending, variables } = useUpdateTaskStatus(orgId)
   const view: TaskListView = isLoading
     ? { status: 'loading' }
@@ -35,7 +35,7 @@ export function TaskListClient({ orgId }: TaskListClientProps) {
     return (
       <div className="space-y-4" aria-busy="true">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
+          <h2 className="text-2xl font-semibold tracking-tight">Tasks</h2>
           <span className="skeleton-shimmer h-4 w-24 rounded-md" />
         </div>
         <TaskTableSkeleton rows={TASK_PAGE_SIZE} />
@@ -73,7 +73,7 @@ export function TaskListClient({ orgId }: TaskListClientProps) {
   return (
     <div className="space-y-4" aria-busy={isFetching}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Tasks</h1>
+        <h2 className="text-2xl font-semibold">Tasks</h2>
         <span className="text-xs font-medium tabular-nums text-muted-foreground">
           {pagination.totalCount} task
           {pagination.totalCount === 1 ? '' : 's'}
@@ -97,7 +97,11 @@ export function TaskListClient({ orgId }: TaskListClientProps) {
         onNext={goToNextPage}
       />
 
-      {isPending && <p className="text-sm text-muted-foreground">Updating task status...</p>}
+      {isPending && (
+        <p role="status" className="text-sm text-muted-foreground">
+          Updating task status...
+        </p>
+      )}
     </div>
   )
 }

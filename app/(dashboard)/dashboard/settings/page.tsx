@@ -1,13 +1,13 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { getCurrentUserFromServer } from '@/lib/auth'
+import { getRequestUser } from '@/lib/request-user'
 import { getActiveMembership } from '@/lib/organizations'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const dynamic = 'force-dynamic'
 
 export default async function SettingsPage() {
-  const user = await getCurrentUserFromServer()
+  const user = await getRequestUser()
   if (!user) redirect('/auth/login')
 
   const activeMembership = await getActiveMembership(user.id)

@@ -1,9 +1,11 @@
 import { z } from 'zod'
+import { revalidateTag } from 'next/cache'
 import { getCurrentUserFromRequest } from '@/lib/auth'
 import { canManageTasks } from '@/lib/authz'
 import { db } from '@/lib/db'
 import { rejectCrossOrigin } from '@/lib/csrf'
 import { getRequestId, logError } from '@/lib/logger'
+import { ORG_STATS_TAG } from '@/lib/cache-tags'
 
 const updateTaskSchema = z.object({
   status: z.enum(['todo', 'in_progress', 'done']),
@@ -71,6 +73,10 @@ export async function PATCH(
       data: { status },
       select: { id: true, status: true, title: true, updatedAt: true },
     })
+
+    // The KPI counters include "pending tasks", so a status change must drop the
+    // cached numbers instead of waiting for the TTL backstop.
+    revalidateTag(ORG_STATS_TAG)
 
     return Response.json({ task: updatedTask }, { status: 200 })
   } catch (error) {

@@ -1,16 +1,39 @@
-export const dynamic = 'force-dynamic'
-
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query'
-import { getCurrentUserFromServer } from '@/lib/auth'
+import { getRequestUser } from '@/lib/request-user'
 import { getActiveMembership } from '@/lib/organizations'
-import { getTasksCursorPage } from '@/lib/tasks'
+import { getTasksPage } from '@/lib/tasks'
 import { taskKeys } from '@/lib/query-keys'
 import { TASK_PAGE_SIZE } from '@/types/tasks'
 import { TaskListClient } from '@/components/projects/TaskListClient'
+import { TaskTableSkeleton } from '@/components/projects/TaskTableSkeleton'
+
+export const dynamic = 'force-dynamic'
+
+/**
+ * The prefetch used to block the whole route: the page could not render its
+ * heading until the first page of tasks came back from Postgres. Hoisting it
+ * into a child wrapped in <Suspense> lets the shell stream immediately and the
+ * table fill in when the query resolves.
+ */
+async function TasksSection({ organizationId }: { organizationId: string }) {
+  const queryClient = new QueryClient()
+
+  await queryClient.prefetchQuery({
+    queryKey: taskKeys.cursor(organizationId, null),
+    queryFn: () => getTasksPage(organizationId, null, TASK_PAGE_SIZE),
+  })
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <TaskListClient key={organizationId} orgId={organizationId} />
+    </HydrationBoundary>
+  )
+}
 
 export default async function ProjectsPage() {
-  const user = await getCurrentUserFromServer()
+  const user = await getRequestUser()
   if (!user) redirect('/auth/login')
 
   const membership = await getActiveMembership(user.id)
@@ -26,12 +49,6 @@ export default async function ProjectsPage() {
   }
 
   const organizationId = membership.organization.id
-  const queryClient = new QueryClient()
-
-  await queryClient.prefetchQuery({
-    queryKey: taskKeys.cursor(organizationId, null, 1),
-    queryFn: () => getTasksCursorPage(organizationId, null, 1, TASK_PAGE_SIZE),
-  })
 
   return (
     <div className="space-y-6">
@@ -41,9 +58,9 @@ export default async function ProjectsPage() {
           Organization: {membership.organization.name}
         </p>
       </div>
-      <HydrationBoundary state={dehydrate(queryClient)}>
-        <TaskListClient key={organizationId} orgId={organizationId} />
-      </HydrationBoundary>
+      <Suspense fallback={<TaskTableSkeleton rows={10} />}>
+        <TasksSection organizationId={organizationId} />
+      </Suspense>
     </div>
   )
 }

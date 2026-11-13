@@ -9,7 +9,8 @@ import {
 } from '@tanstack/react-query'
 import { useNotifications } from '@/hooks/useNotifications'
 import { taskKeys } from '@/lib/query-keys'
-import { TASK_PAGE_SIZE, type Task, type TasksResponse, type TaskStatus } from '@/types/tasks'
+import { tasksResponseSchema, type Task, type TasksResponse, type TaskStatus } from '@/lib/validations/tasks'
+import { TASK_PAGE_SIZE } from '@/types/tasks'
 
 type UpdateTaskStatusInput = {
   taskId: string
@@ -20,23 +21,8 @@ type UpdateTaskContext = {
   previousTasks: Array<[QueryKey, TasksResponse | undefined]>
 }
 
-type TasksApiPayload = {
-  tasks?: Task[]
-  pagination?: unknown
-}
-
-function isTasksPagination(value: unknown): value is TasksResponse['pagination'] {
-  if (typeof value !== 'object' || value === null) return false
-
-  const candidate = value as Record<string, unknown>
-  return ['page', 'pageSize', 'totalCount', 'totalPages'].every(
-    (key) => typeof candidate[key] === 'number'
-  )
-}
-
 async function fetchTasks(
   orgId: string,
-  page: number,
   pageSize: number,
   cursor: string | null,
   signal?: AbortSignal
@@ -53,18 +39,10 @@ async function fetchTasks(
   })
   if (!res.ok) throw new Error('Failed to fetch tasks')
 
-  const data = (await res.json()) as TasksApiPayload
-  return {
-    tasks: Array.isArray(data.tasks) ? data.tasks : [],
-    pagination: isTasksPagination(data.pagination)
-      ? data.pagination
-      : {
-          page,
-          pageSize,
-          totalCount: 0,
-          totalPages: 0,
-        },
-  }
+  // Throwing on a malformed payload is deliberate: the previous code fell back
+  // to an empty page, so a contract change looked like "no data" instead of a
+  // loud failure.
+  return tasksResponseSchema.parse(await res.json())
 }
 
 async function updateTaskStatus(input: UpdateTaskStatusInput): Promise<Task> {
@@ -80,17 +58,16 @@ async function updateTaskStatus(input: UpdateTaskStatusInput): Promise<Task> {
 
 export function useTasks(
   orgId: string | null,
-  page = 1,
   pageSize = TASK_PAGE_SIZE,
   cursor: string | null = null
 ) {
   return useQuery({
-    queryKey: taskKeys.cursor(orgId, cursor, page),
+    queryKey: taskKeys.cursor(orgId, cursor),
     queryFn: ({ signal }) => {
       if (!orgId) throw new Error('orgId is required to fetch tasks')
       // TanStack Query aborts this signal when the page changes, so a slow
       // response for an obsolete page can never overwrite the latest one.
-      return fetchTasks(orgId, page, pageSize, cursor, signal)
+      return fetchTasks(orgId, pageSize, cursor, signal)
     },
     enabled: Boolean(orgId),
     staleTime: 1000 * 60 * 2,

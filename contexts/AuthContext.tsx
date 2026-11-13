@@ -4,18 +4,20 @@ import { createContext, useContext, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { authKeys } from '@/lib/query-keys'
 
+type AuthUser = { id: string; email: string; name?: string | null }
+
 type AuthContextValue = {
-  user: { id: string; email: string; name?: string | null } | null
+  user: AuthUser | null
   isLoading: boolean
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 type CurrentUserResponse = {
-  user: AuthContextValue['user']
+  user: AuthUser | null
 }
 
-async function fetchCurrentUser(): Promise<AuthContextValue['user']> {
+async function fetchCurrentUser(): Promise<AuthUser | null> {
   const res = await fetch('/api/auth/me', {
     cache: 'no-store',
     credentials: 'include',
@@ -25,13 +27,28 @@ async function fetchCurrentUser(): Promise<AuthContextValue['user']> {
   return data.user ?? null
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+/**
+ * `initialUser` comes from the Server Component that already resolved the
+ * session, so the provider never has to ask the network for a user the server
+ * just handed it.
+ *
+ * Before: `staleTime: 0` + `refetchOnMount: 'always'` meant every dashboard load
+ * fired `/api/auth/me` again and the navbar rendered "Guest" until it returned.
+ * Now the query starts hydrated and merely revalidates in the background after
+ * five minutes.
+ */
+export function AuthProvider({
+  children,
+  initialUser,
+}: {
+  children: React.ReactNode
+  initialUser: AuthUser | null
+}) {
   const { data: user, isLoading } = useQuery({
     queryKey: authKeys.currentUser,
     queryFn: fetchCurrentUser,
-    // Never serve a stale null from the login page after the cookie was set.
-    staleTime: 0,
-    refetchOnMount: 'always',
+    initialData: initialUser,
+    staleTime: 1000 * 60 * 5,
     retry: 1,
   })
 
@@ -52,4 +69,4 @@ export function useAuth() {
   return context
 }
 
-export type { AuthContextValue }
+export type { AuthContextValue, AuthUser }

@@ -18,49 +18,6 @@ export function clearTaskCountCache(): void {
   taskCountCache.clear()
 }
 
-export async function getTasksPage(
-  organizationId: string,
-  page: number,
-  pageSize: number
-): Promise<TasksResponse> {
-  const skip = (page - 1) * pageSize
-
-  const [tasks, totalCount] = await Promise.all([
-    db.task.findMany({
-      where: {
-        project: { organizationId },
-      },
-      select: {
-        id: true,
-        title: true,
-        status: true,
-        updatedAt: true,
-      },
-      orderBy: { updatedAt: 'desc' },
-      skip,
-      take: pageSize,
-    }),
-    getTaskCount(organizationId),
-  ])
-
-  const serializedTasks: Task[] = tasks.map((task) => ({
-    id: task.id,
-    title: task.title,
-    status: task.status as TaskStatus,
-    updatedAt: task.updatedAt.toISOString(),
-  }))
-
-  return {
-    tasks: serializedTasks,
-    pagination: {
-      page,
-      pageSize,
-      totalCount,
-      totalPages: Math.ceil(totalCount / pageSize),
-    },
-  }
-}
-
 export type TaskCursor = {
   updatedAt: Date
   id: string
@@ -69,7 +26,7 @@ export type TaskCursor = {
 type CursorTaskRow = {
   id: string
   title: string
-  status: string
+  status: TaskStatus
   updatedAt: Date
 }
 
@@ -77,7 +34,9 @@ function serializeTask(task: CursorTaskRow): Task {
   return {
     id: task.id,
     title: task.title,
-    status: task.status as TaskStatus,
+    // `status` is a Prisma enum, so this is a real assignment check and not a
+    // cast: if the schema enum and the client union drift apart, `tsc` fails.
+    status: task.status,
     updatedAt: task.updatedAt.toISOString(),
   }
 }
@@ -104,10 +63,21 @@ export function decodeTaskCursor(value: string): TaskCursor | null {
   }
 }
 
-export async function getTasksCursorPage(
+/**
+ * Keyset (cursor) pagination — the only pagination path.
+ *
+ * There used to be a second offset-based implementation behind `?page=`, kept
+ * "for API compatibility". It was never called by the client, it forced the
+ * route handler to branch on which parameters arrived, and it made the response
+ * shape ambiguous (`pagination.page` meant different things per branch). It is
+ * gone: one algorithm, one contract.
+ *
+ * Ordering is `updatedAt DESC, id DESC` so the cursor is stable when several
+ * tasks share the same `updatedAt` millisecond.
+ */
+export async function getTasksPage(
   organizationId: string,
   cursor: TaskCursor | null,
-  page: number,
   pageSize: number
 ): Promise<TasksResponse> {
   const where = {
@@ -139,7 +109,6 @@ export async function getTasksCursorPage(
   return {
     tasks: pageRows.map(serializeTask),
     pagination: {
-      page,
       pageSize,
       totalCount,
       totalPages: Math.ceil(totalCount / pageSize),

@@ -63,6 +63,27 @@ test.describe('Dashboard with isolated fixtures', () => {
     expect(serious).toEqual([])
   })
 
+  test('has no serious accessibility violations on the tasks page and one h1', async ({ page }) => {
+    await signIn(page)
+    await page.goto('/dashboard/projects')
+
+    // Regression guard: the page used to render two <h1> elements ("Projects"
+    // and "Tasks"), which breaks heading navigation for screen readers.
+    await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
+    await expect(page.getByRole('heading', { level: 1, name: 'Projects' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Next' })).toBeVisible()
+
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze()
+
+    const serious = results.violations
+      .filter((violation) => violation.impact === 'critical' || violation.impact === 'serious')
+      .map((violation) => ({ id: violation.id, impact: violation.impact, help: violation.help }))
+
+    expect(serious).toEqual([])
+  })
+
   test('shows real members and a role control for admins', async ({ page }) => {
     await signIn(page)
     await page.goto('/dashboard/members')

@@ -39,54 +39,72 @@ export function DashboardShell({
       <div className="flex flex-1 flex-col overflow-hidden">
         <Navbar />
         <MobileNav memberships={memberships} activeOrganizationId={activeOrganizationId} />
-        <div
-          ref={contentRef}
-          tabIndex={-1}
-          role="region"
-          aria-label="Dashboard content"
-          className="relative flex-1 overflow-y-auto p-6"
-        >
+
+        {/*
+         * The transition overlay lives in this wrapper, not inside the scroll
+         * container: with `absolute inset-0` inside an `overflow-y-auto` box the
+         * containing block is the full scroll height, so centering it there puts
+         * the pill below the fold on a long page. Here it is centered in the
+         * visible pane, whatever the page height.
+         */}
+        <div className="relative flex-1 overflow-hidden">
+          <div
+            ref={contentRef}
+            tabIndex={-1}
+            role="region"
+            aria-label="Dashboard content"
+            className="h-full overflow-y-auto p-6"
+          >
+            <div
+              aria-busy={isSwitching}
+              className={
+                isSwitching
+                  ? 'pointer-events-none opacity-60 transition-opacity'
+                  : 'transition-opacity'
+              }
+            >
+              <nav className="mb-6 flex items-center space-x-1 text-sm text-muted-foreground">
+                <Link
+                  href="/dashboard"
+                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                    pathname === '/dashboard'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-accent hover:text-accent-foreground'
+                  }`}
+                >
+                  Dashboard
+                </Link>
+                <span className="px-3 py-1.5">/</span>
+                <Link
+                  href="/dashboard/projects"
+                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                    pathname.startsWith('/dashboard/projects')
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-accent hover:text-accent-foreground'
+                  }`}
+                >
+                  Projects
+                </Link>
+              </nav>
+              {children}
+            </div>
+          </div>
+
           {isSwitching && (
             <div
               role="status"
               aria-live="polite"
-              className="absolute inset-0 z-30 flex items-start justify-center bg-background/50 pt-24 backdrop-blur-[1px]"
+              className="absolute inset-0 z-30 flex items-center justify-center bg-background/50 backdrop-blur-[1px]"
             >
               <div className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm shadow-sm">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden="true" />
+                <span
+                  className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
+                  aria-hidden="true"
+                />
                 Updating workspace...
               </div>
             </div>
           )}
-          <div
-            aria-busy={isSwitching}
-            className={isSwitching ? 'pointer-events-none opacity-60 transition-opacity' : 'transition-opacity'}
-          >
-          <nav className="mb-6 flex items-center space-x-1 text-sm text-muted-foreground">
-            <Link
-              href="/dashboard"
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                pathname === '/dashboard'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-accent hover:text-accent-foreground'
-              }`}
-            >
-              Dashboard
-            </Link>
-            <span className="px-3 py-1.5">/</span>
-            <Link
-              href="/dashboard/projects"
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                pathname.startsWith('/dashboard/projects')
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-accent hover:text-accent-foreground'
-              }`}
-            >
-              Projects
-            </Link>
-          </nav>
-          {children}
-          </div>
         </div>
       </div>
     </div>

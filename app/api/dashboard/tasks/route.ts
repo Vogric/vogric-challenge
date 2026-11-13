@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { getCurrentUserFromRequest } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { decodeTaskCursor, getTasksCursorPage, getTasksPage } from '@/lib/tasks'
+import { decodeTaskCursor, getTasksPage } from '@/lib/tasks'
 import { getRequestId, logError } from '@/lib/logger'
 import { TASK_PAGE_SIZE } from '@/types/tasks'
 
@@ -9,7 +9,6 @@ export const dynamic = 'force-dynamic'
 
 const querySchema = z.object({
   orgId: z.string().min(1),
-  page: z.coerce.number().int().positive().max(100_000).optional(),
   cursor: z.string().max(500).optional(),
   pageSize: z.coerce.number().int().positive().max(100).default(TASK_PAGE_SIZE),
 })
@@ -31,7 +30,6 @@ async function listTasks(req: Request) {
   const { searchParams } = new URL(req.url)
   const parsed = querySchema.safeParse({
     orgId: searchParams.get('orgId') ?? undefined,
-    page: searchParams.get('page') ?? undefined,
     cursor: searchParams.get('cursor') ?? undefined,
     pageSize: searchParams.get('pageSize') ?? undefined,
   })
@@ -47,7 +45,6 @@ async function listTasks(req: Request) {
   }
 
   const { orgId, pageSize } = parsed.data
-  const page = parsed.data.page ?? 1
   const cursor = parsed.data.cursor ? decodeTaskCursor(parsed.data.cursor) : null
 
   if (parsed.data.cursor && !cursor) {
@@ -65,10 +62,7 @@ async function listTasks(req: Request) {
     return json({ error: 'Forbidden' }, 403)
   }
 
-  const result =
-    parsed.data.page && !parsed.data.cursor
-      ? await getTasksPage(orgId, page, pageSize)
-      : await getTasksCursorPage(orgId, cursor, page, pageSize)
+  const result = await getTasksPage(orgId, cursor, pageSize)
 
   return json(result, 200)
 }

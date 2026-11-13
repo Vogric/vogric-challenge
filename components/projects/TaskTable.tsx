@@ -19,9 +19,13 @@ function isTaskStatus(value: string): value is TaskStatus {
 }
 
 function formatUpdatedAt(iso: string): string {
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return iso
-  return date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
+  // Deliberately not locale/timezone aware. `toLocaleString` formatted rows in
+  // the server timezone during SSR and in the browser timezone on hydration,
+  // which made every row a hydration mismatch on Vercel (UTC) for any user
+  // outside UTC. Rendering an explicit UTC stamp is boring and deterministic.
+  const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/.exec(iso)
+  if (!match) return iso
+  return `${match[1]} ${match[2]} UTC`
 }
 
 export function TaskTable({ items, updatingTaskId, onStatusChange }: TaskTableProps) {
