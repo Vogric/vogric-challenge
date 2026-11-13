@@ -65,7 +65,7 @@ describe('getTasksPage', () => {
     const rows = Array.from({ length: 51 }, (_, index) => ({
       id: `task-${index}`,
       title: `Task ${index}`,
-      status: 'todo',
+      status: 'todo' as const,
       projectId: 'project-1',
       assigneeId: null,
       createdAt: new Date('2026-01-01T00:00:00Z'),
