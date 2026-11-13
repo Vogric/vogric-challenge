@@ -8,11 +8,13 @@
 
 ## Deploy checklist
 1. `npm ci`
-2. `npm run build`
-3. Verify `/api/health` returns 200 and `database: connected`.
+2. `npx prisma migrate deploy` — apply pending migrations before the code that needs them.
+3. `npm run build`
+4. Verify `/api/health` returns 200 and `database: connected`.
 5. Verify login, organization switch and `/dashboard/projects`.
 6. Check CSP and security headers in DevTools.
 7. Confirm `/api/auth/me` is `private, no-store`.
+8. Confirm the boot check is satisfied: `instrumentation.ts` refuses to start without `JWT_SECRET` or `DATABASE_URL`.
 
 ## Vercel production migrations
 
