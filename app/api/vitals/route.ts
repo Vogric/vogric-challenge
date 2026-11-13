@@ -1,8 +1,16 @@
 import { z } from 'zod'
 import { rejectCrossOrigin } from '@/lib/csrf'
 import { getRequestId, logInfo } from '@/lib/logger'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
+
+const MAX_REPORTS_PER_MINUTE = 30
+
+function clientIdentifier(req: Request): string {
+  const forwardedFor = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+  return forwardedFor || req.headers.get('x-real-ip') || 'anonymous'
+}
 
 const bodySchema = z.object({
   name: z.string().min(1).max(50),
@@ -15,6 +23,18 @@ const bodySchema = z.object({
 export async function POST(req: Request) {
   const csrfError = rejectCrossOrigin(req)
   if (csrfError) return csrfError
+
+  // This endpoint is unauthenticated by design (metrics arrive before login),
+  // so it needs its own bound: otherwise anyone can flood the logs with
+  // attacker-controlled payloads and inflate ingestion cost.
+  const limit = await checkRateLimit(
+    `rate-limit:vitals:${clientIdentifier(req)}`,
+    MAX_REPORTS_PER_MINUTE,
+    60_000
+  )
+  if (limit.limited) {
+    return new Response(null, { status: 429, headers: { 'Cache-Control': 'no-store' } })
+  }
 
   let body: unknown
   try {

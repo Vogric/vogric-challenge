@@ -77,6 +77,21 @@ test.describe('Authentication', () => {
     await expect(page).toHaveURL('/auth/login')
   })
 
+  test('An authenticated visitor on /auth/login is sent to /dashboard', async ({ page }) => {
+    // This redirect moved from the middleware to the login page: the middleware
+    // only sees that a cookie exists, so it cannot tell a live session from an
+    // expired one, and the naive check loops between the two routes.
+    await page.goto('/auth/login')
+    await page.getByLabel('Email').fill('demo@example.com')
+    await page.getByLabel('Password').fill('password123')
+    await page.getByRole('button', { name: /Sign in/ }).click()
+    await expect(page).toHaveURL('/dashboard')
+
+    await page.goto('/auth/login')
+    await expect(page).toHaveURL('/dashboard')
+    await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible()
+  })
+
   test('Logout: signing out and returning to /dashboard redirects to login', async ({ page }) => {
     await test.step('Sign in with valid credentials', async () => {
       await page.goto('/auth/login')
