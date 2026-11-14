@@ -37,6 +37,7 @@ model User {
   memberships       Membership[]
   ownedOrganization Organization[] @relation("OrganizationOwner")
   assignedTasks     Task[]         @relation("TaskAssignee")
+  auditEvents       AuditEvent[]   @relation("AuditActor")
 }
 
 model Account {
@@ -84,6 +85,7 @@ model Organization {
   owner       User         @relation("OrganizationOwner", fields: [ownerId], references: [id])
   memberships Membership[]
   projects    Project[]
+  auditEvents AuditEvent[]
 }
 
 model Membership {
@@ -98,6 +100,22 @@ model Membership {
   @@unique([userId, organizationId])
   @@index([userId])
   @@index([organizationId])
+}
+
+model AuditEvent {
+  id             String   @id @default(cuid())
+  organizationId String
+  actorId        String
+  action         String
+  entityType     String
+  entityId       String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor        User         @relation("AuditActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
 }
 
 model Project {
@@ -118,11 +136,11 @@ model Task {
   title      String
   status     TaskStatus @default(todo)
   projectId  String
-  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   assigneeId String?
-  assignee   User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  assignee   User?      @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
   @@index([projectId])
   @@index([projectId, updatedAt])

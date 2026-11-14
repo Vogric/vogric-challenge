@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 import { rejectCrossOrigin } from '@/lib/csrf'
 import { getRequestId, logError } from '@/lib/logger'
 import { ORG_STATS_TAG } from '@/lib/cache-tags'
+import { recordAuditEvent } from '@/lib/audit'
 
 const updateTaskSchema = z.object({
   status: z.enum(['todo', 'in_progress', 'done']),
@@ -72,6 +73,15 @@ export async function PATCH(
       where: { id },
       data: { status },
       select: { id: true, status: true, title: true, updatedAt: true },
+    })
+
+    await recordAuditEvent({
+      organizationId: task.project.organizationId,
+      actorId: user.id,
+      action: 'task.status_changed',
+      entityType: 'task',
+      entityId: id,
+      metadata: { from: task.status, to: status, title: task.title },
     })
 
     // The KPI counters include "pending tasks", so a status change must drop the

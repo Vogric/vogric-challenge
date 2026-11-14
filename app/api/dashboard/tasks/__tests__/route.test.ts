@@ -8,6 +8,7 @@ vi.mock('@/lib/db', () => ({
   db: {
     membership: { findFirst: vi.fn() },
     task: { findUnique: vi.fn(), update: vi.fn() },
+    auditEvent: { create: vi.fn() },
   },
 }))
 

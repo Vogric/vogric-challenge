@@ -94,6 +94,18 @@ test.describe('Dashboard with isolated fixtures', () => {
     await expect(content.getByLabel('Role for demo@example.com')).toHaveValue('ADMIN')
   })
 
+  test('records a task status change in the audit log', async ({ page }) => {
+    await signIn(page)
+    await page.goto('/dashboard/projects')
+    const firstStatus = page.locator('tbody tr select').first()
+    await firstStatus.selectOption('done')
+    await page.waitForTimeout(300)
+
+    await page.goto('/dashboard/audit')
+    await expect(page.getByRole('heading', { name: 'Audit log' })).toBeVisible()
+    await expect(page.getByText('task.status_changed').first()).toBeVisible()
+  })
+
   test('shows the account and organization settings', async ({ page }) => {
     await signIn(page)
     await page.goto('/dashboard/settings')

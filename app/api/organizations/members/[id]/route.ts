@@ -3,6 +3,7 @@ import { getCurrentUserFromRequest } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { runSerializable } from '@/lib/db-tx'
 import { rejectCrossOrigin } from '@/lib/csrf'
+import { recordAuditEvent } from '@/lib/audit'
 
 export const dynamic = 'force-dynamic'
 
@@ -54,7 +55,7 @@ export async function PATCH(
   const outcome = await runSerializable(async (tx): Promise<Outcome> => {
       const target = await tx.membership.findUnique({
         where: { id },
-        select: { id: true, organizationId: true, role: true },
+        select: { id: true, organizationId: true, role: true, userId: true },
       })
 
       if (!target) return { kind: 'not-found' }
@@ -81,6 +82,18 @@ export async function PATCH(
         data: { role: parsed.data.role },
         select: { id: true, role: true },
       })
+
+      await recordAuditEvent(
+        {
+          organizationId: target.organizationId,
+          actorId: user.id,
+          action: 'membership.role_changed',
+          entityType: 'membership',
+          entityId: target.id,
+          metadata: { targetUserId: target.userId, from: target.role, to: parsed.data.role },
+        },
+        tx
+      )
 
       return { kind: 'ok', membership }
     }

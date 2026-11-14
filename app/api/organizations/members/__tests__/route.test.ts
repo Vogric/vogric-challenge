@@ -21,6 +21,7 @@ type Tx = {
     count: ReturnType<typeof vi.fn>
     update: ReturnType<typeof vi.fn>
   }
+  auditEvent: { create: ReturnType<typeof vi.fn> }
 }
 
 function makeTx(): Tx {
@@ -31,6 +32,7 @@ function makeTx(): Tx {
       count: vi.fn(),
       update: vi.fn(),
     },
+    auditEvent: { create: vi.fn() },
   }
 }
 

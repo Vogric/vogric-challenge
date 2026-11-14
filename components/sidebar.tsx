@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, Users, Settings, LogOut, History } from 'lucide-react'
 import { useLogout } from '@/hooks/useLogout'
 import { OrganizationSwitcher } from '@/components/organizations/organization-switcher'
 import type { MembershipSummary } from '@/types/organizations'
@@ -21,6 +21,13 @@ type SidebarProps = {
 export function Sidebar({ memberships, activeOrganizationId }: SidebarProps) {
   const pathname = usePathname()
   const { logout, isPending: isLoggingOut } = useLogout()
+  const activeRole = memberships.find(
+    (membership) => membership.organizationId === activeOrganizationId
+  )?.role
+  const navItems =
+    activeRole === 'ADMIN'
+      ? [...NAV_ITEMS, { name: 'Audit', href: '/dashboard/audit', icon: History }]
+      : NAV_ITEMS
 
   return (
     <aside className="hidden w-72 flex-shrink-0 flex-col border-r border-border bg-background lg:flex">
@@ -49,7 +56,7 @@ export function Sidebar({ memberships, activeOrganizationId }: SidebarProps) {
         />
       </div>
       <nav className="flex-1 space-y-1 px-3">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const isActive =
             item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href)
 

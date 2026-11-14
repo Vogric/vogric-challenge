@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FolderKanban, Users, Settings } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, Users, Settings, History } from 'lucide-react'
 import { OrganizationSwitcher } from '@/components/organizations/organization-switcher'
 import type { MembershipSummary } from '@/types/organizations'
 
@@ -20,6 +20,13 @@ type MobileNavProps = {
 
 export function MobileNav({ memberships, activeOrganizationId }: MobileNavProps) {
   const pathname = usePathname()
+  const activeRole = memberships.find(
+    (membership) => membership.organizationId === activeOrganizationId
+  )?.role
+  const items =
+    activeRole === 'ADMIN'
+      ? [...MOBILE_ITEMS, { name: 'Audit', href: '/dashboard/audit', icon: History }]
+      : MOBILE_ITEMS
 
   return (
     <div className="border-b border-border bg-background p-3 lg:hidden">
@@ -29,7 +36,7 @@ export function MobileNav({ memberships, activeOrganizationId }: MobileNavProps)
         ariaLabel="Organization (mobile)"
       />
       <nav className="mt-3 flex gap-1 overflow-x-auto" aria-label="Mobile navigation">
-        {MOBILE_ITEMS.map((item) => {
+        {items.map((item) => {
           const isActive =
             item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href)
 
