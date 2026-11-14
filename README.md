@@ -7,7 +7,7 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 ![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)
 ![React](https://img.shields.io/badge/React-19-61dafb.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)
-![Tests](https://img.shields.io/badge/Tests-105%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/Tests-106%20passing-brightgreen.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
 ---
@@ -39,6 +39,7 @@ Five screens:
 | Overview | `/dashboard` | KPI counters for the active organization |
 | Tasks | `/dashboard/projects` | Cursor-paginated task table with inline status editing. Reached from the **Projects** tab above the content, or by URL |
 | Team | `/dashboard/members` | Members and role management (admins only) |
+| Audit | `/dashboard/audit` | Tenant-scoped audit trail (admins only) |
 | Settings | `/dashboard/settings` | Read-only account and workspace summary |
 
 **Demo accounts** (created by the seed):
@@ -53,8 +54,8 @@ Signing in as `demo`, switching organization in the sidebar, and opening **Tasks
 ## 60-second tour
 
 1. Sign in as `demo@example.com`.
-2. The overview shows counters for **Globex**, where the user is a MANAGER.
-3. Switch to **Acme Corp** in the sidebar. The counters change and the role line says `signed in as admin`.
+2. The overview shows counters for **Acme Corp**, where the user is an ADMIN.
+3. Switch to **Globex** in the sidebar. The counters change and the role line says `signed in as manager`.
 4. Open **Tasks**. Change a status. The row updates immediately (optimistic), and the overview counters are invalidated server-side.
 5. Switch to **Initech** (VIEWER) and try the same. The request is rejected with a 403, the optimistic row reverts, and a notification says why. The UI does not pre-disable the control: the API is the authority.
 6. Open **Team** in Acme Corp: role controls appear. As a VIEWER in Initech, they do not.

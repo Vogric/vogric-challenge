@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers'
+import { parseCookieHeader, SESSION_COOKIE } from '@/lib/cookies'
 import { db } from '@/lib/db'
 import { createJWT, verifyJWT, SESSION_MAX_AGE_SECONDS, type SessionPayload } from '@/lib/jwt'
 
@@ -24,13 +25,7 @@ export function clearSessionCookie(response: Response) {
 }
 
 export async function getSessionFromCookie(cookieHeader: string | undefined): Promise<SessionPayload | null> {
-  if (!cookieHeader) return null
-  const cookies = cookieHeader.split('; ').reduce<Record<string, string>>((acc, c) => {
-    const [key, ...valParts] = c.split('=')
-    acc[key] = valParts.join('=')
-    return acc
-  }, {})
-  const token = cookies['session']
+  const token = parseCookieHeader(cookieHeader)[SESSION_COOKIE]
   if (!token) return null
   return verifyJWT(token)
 }

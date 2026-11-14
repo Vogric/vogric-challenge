@@ -8,3 +8,4 @@
 
 Operational checklist: [`docs/runbook.md`](../runbook.md).
 - [0006 — Edge middleware makes no security decisions](./0006-edge-middleware-makes-no-security-decisions.md)
+- [0007 — Enterprise identity and audit path](./0007-enterprise-identity-and-audit.md)
