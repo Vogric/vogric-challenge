@@ -10,6 +10,28 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 ![Tests](https://img.shields.io/badge/Tests-106%20passing-brightgreen.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
+
+## At a glance
+
+| Signal | Value |
+|---|---|
+| Live deployment | <https://vogric-challenge.vercel.app> |
+| Automated tests | **106** (89 unit + 17 E2E) |
+| Coverage gate | **92.32% statements** · 80.71% branches · 95.55% functions |
+| Tasks p95 (warm) | **180 ms** at 10 VUs · 0.00% errors |
+| Middleware | **33.8 kB** |
+| Stack | Next.js 15 · React 19 · Prisma/Neon · TanStack Query |
+| Deploy | Vercel, production migrations in build |
+
+## Demo package
+
+- [5-minute demo script](./DEMO.md)
+- [Architecture diagrams](./docs/architecture.md)
+- [One-page case study](./docs/case-study.md)
+- [2-minute video script](./docs/video-script.md)
+- [Interview Q&A](./docs/interview-qa.md)
+- [ADRs and runbook](./docs/adr/README.md)
+
 ---
 
 ## Who should read what
