@@ -11,10 +11,21 @@ type ThemeContextValue = {
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
+const THEME_STORAGE_KEY = 'vogric-theme'
+
+function readStoredTheme(): Theme {
+  if (typeof window === 'undefined') return 'system'
+  const stored = window.localStorage.getItem(THEME_STORAGE_KEY)
+  return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system'
+}
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('system')
+  const [theme, setTheme] = useState<Theme>(readStoredTheme)
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
+
+  useEffect(() => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme)
+  }, [theme])
 
   useEffect(() => {
     const root = window.document.documentElement

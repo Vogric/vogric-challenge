@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTasks, useUpdateTaskStatus } from '@/hooks/useTasks'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { TaskTable } from '@/components/projects/TaskTable'
@@ -21,10 +21,14 @@ type TaskListView =
   | { status: 'error' }
   | { status: 'success'; data: TasksResponse }
 
+type PaginationState = {
+  signature: string
+  cursor: string | null
+  history: Array<string | null>
+  page: number
+}
+
 export function TaskListClient({ orgId, projects }: TaskListClientProps) {
-  const [page, setPage] = useState(1)
-  const [cursor, setCursor] = useState<string | null>(null)
-  const [cursorHistory, setCursorHistory] = useState<Array<string | null>>([])
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<TaskStatus | ''>('')
   const [projectId, setProjectId] = useState('')
@@ -38,17 +42,29 @@ export function TaskListClient({ orgId, projects }: TaskListClientProps) {
     }),
     [debouncedSearch, status, projectId]
   )
+  const filterSignature = useMemo(
+    () => JSON.stringify({ q: debouncedSearch, status, projectId }),
+    [debouncedSearch, status, projectId]
+  )
+  const [pagination, setPagination] = useState<PaginationState>(() => ({
+    signature: filterSignature,
+    cursor: null,
+    history: [],
+    page: 1,
+  }))
 
-  useEffect(() => {
-    setCursor(null)
-    setCursorHistory([])
-    setPage(1)
-  }, [debouncedSearch, status, projectId])
+  // Derive the visible cursor from the current filters instead of resetting it
+  // in an effect. This avoids issuing one request with the old cursor under the
+  // new filters, followed by a second reset request.
+  const activePagination: PaginationState =
+    pagination.signature === filterSignature
+      ? pagination
+      : { signature: filterSignature, cursor: null, history: [], page: 1 }
 
   const { data, isLoading, isError, isFetching } = useTasks(
     orgId,
     TASK_PAGE_SIZE,
-    cursor,
+    activePagination.cursor,
     filters
   )
   const { mutate: updateStatus, isPending, variables } = useUpdateTaskStatus(orgId)
@@ -61,23 +77,29 @@ export function TaskListClient({ orgId, projects }: TaskListClientProps) {
         : { status: 'loading' }
 
   const totalCount = view.status === 'success' ? view.data.pagination.totalCount : 0
-  const pagination = view.status === 'success' ? view.data.pagination : null
-  const totalPages = pagination ? Math.max(1, pagination.totalPages) : 1
-  const hasNextPage = Boolean(pagination?.nextCursor)
+  const pageInfo = view.status === 'success' ? view.data.pagination : null
+  const totalPages = pageInfo ? Math.max(1, pageInfo.totalPages) : 1
+  const hasNextPage = Boolean(pageInfo?.nextCursor)
 
   function goToNextPage() {
-    if (!pagination?.nextCursor) return
-    setCursorHistory((history) => [...history, cursor])
-    setCursor(pagination.nextCursor)
-    setPage((current) => current + 1)
+    if (!pageInfo?.nextCursor) return
+    setPagination({
+      signature: filterSignature,
+      cursor: pageInfo.nextCursor,
+      history: [...activePagination.history, activePagination.cursor],
+      page: activePagination.page + 1,
+    })
   }
 
   function goToPreviousPage() {
-    if (cursorHistory.length === 0) return
-    const previousCursor = cursorHistory[cursorHistory.length - 1]
-    setCursorHistory((history) => history.slice(0, -1))
-    setCursor(previousCursor)
-    setPage((current) => Math.max(1, current - 1))
+    if (activePagination.history.length === 0) return
+    const previousCursor = activePagination.history[activePagination.history.length - 1]
+    setPagination({
+      signature: filterSignature,
+      cursor: previousCursor,
+      history: activePagination.history.slice(0, -1),
+      page: Math.max(1, activePagination.page - 1),
+    })
   }
 
   function clearFilters() {
@@ -123,11 +145,11 @@ export function TaskListClient({ orgId, projects }: TaskListClientProps) {
           />
 
           <TaskPagination
-            page={page}
+            page={activePagination.page}
             pageSize={TASK_PAGE_SIZE}
             totalCount={view.data.pagination.totalCount}
             totalPages={totalPages}
-            hasPreviousPage={cursorHistory.length > 0}
+            hasPreviousPage={activePagination.history.length > 0}
             hasNextPage={hasNextPage}
             onPrevious={goToPreviousPage}
             onNext={goToNextPage}
