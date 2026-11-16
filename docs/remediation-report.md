@@ -1,3 +1,5 @@
+> **Informe histórico (anterior al rediseño).** Se conserva como trazabilidad. Los stubs de Members/Settings y la navegación móvil ya fueron resueltos; consulta el README y `docs/ui-refresh-plan.md` para el estado actual.
+
 # Remediation sprint — saas-dashboard
 
 Fecha: 2026-11-12

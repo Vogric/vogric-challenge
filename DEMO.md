@@ -39,7 +39,7 @@ Do not open Settings, Team, or the ADRs in the 60-second version.
 | 0:00 | Dashboard | “One user, multiple organizations, different role in each.” | Acme ADMIN |
 | 0:25 | Switch to Globex | “The tenant lives in an HttpOnly cookie, validated against membership. No client-trusted org id.” | Overlay + MANAGER |
 | 0:50 | Switch to Initech | “Same user, VIEWER. The UI does not pre-disable the control; the API is the authority.” | 403 on mutation |
-| 1:15 | Tasks | “Cursor pagination, not offset. The cursor is opaque and ordered by `updatedAt + id`.” | Next page |
+| 1:15 | Projects | “Cursor pagination, not offset. The cursor is opaque and ordered by `updatedAt + id`.” | Next page |
 | 1:40 | Change a status | “Optimistic update with rollback; the KPI tag is invalidated server-side.” | Row updates |
 | 2:00 | Audit | “Every sensitive mutation writes a tenant-scoped audit event.” | `task.status_changed` |
 | 2:25 | Team | “Role management is ADMIN-only and the last admin is protected by a serializable transaction.” | Role control |

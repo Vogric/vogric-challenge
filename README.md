@@ -90,7 +90,7 @@ Six screens:
 | `demo@example.com` | `password123` | ADMIN | MANAGER | VIEWER |
 | `viewer@example.com` | `password123` | — | — | VIEWER |
 
-Signing in as `demo`, switching organization in the sidebar, and opening **Tasks** is the fastest way to see the tenancy model in action: the same user gets different permissions in each organization.
+Signing in as `demo`, switching organization in the sidebar, and opening **Projects** is the fastest way to see the tenancy model in action: the same user gets different permissions in each organization.
 
 ## 60-second tour
 
