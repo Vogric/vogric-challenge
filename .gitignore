@@ -39,3 +39,7 @@ coverage/
 playwright-report/
 test-results/
 *.tsbuildinfo
+
+# Demo recording artifacts
+demo/raw/
+demo/*.webm

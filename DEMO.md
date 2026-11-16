@@ -7,6 +7,7 @@ Forward Deployed Engineers. The goal is not to show every screen; it is to show
 - Live: <https://vogric-challenge.vercel.app>
 - Demo: `demo@example.com` / `password123`
 - Read-only viewer: `viewer@example.com` / `password123`
+- 27-second product video: [`demo/saas-dashboard-demo.mp4`](./demo/saas-dashboard-demo.mp4)
 
 ## Before you present
 

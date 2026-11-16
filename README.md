@@ -4,6 +4,10 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 
 **Live demo:** <https://vogric-challenge.vercel.app> · sign in with `demo@example.com` / `password123`
 
+[![27-second product demo](./demo/saas-dashboard-demo-poster.png)](./demo/saas-dashboard-demo.mp4)
+
+**27-second product demo:** [MP4](./demo/saas-dashboard-demo.mp4) · [demo script](./DEMO.md) · [architecture](./docs/architecture.md)
+
 ![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)
 ![React](https://img.shields.io/badge/React-19-61dafb.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)
