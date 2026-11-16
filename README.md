@@ -187,6 +187,27 @@ The six decisions worth arguing about, and what each one cost. Full context in [
 
 The authorization tests are the interesting ones: `tests/e2e/tenant-isolation.spec.ts` signs in as a viewer and tries to mutate another tenant's task, and `app/api/**/__tests__` covers the role matrix per endpoint (anonymous, missing membership, wrong role, foreign resource, last admin).
 
+
+## Measured performance (live Vercel deployment)
+
+**k6 · 10 VUs · 20 s · `fra1` → Neon `eu-central-1`**
+
+| Metric | Warm | Cold start |
+|---|---:|---:|
+| Tasks p95 | **180 ms** | 310 ms |
+| Tasks median | 124 ms | — |
+| Error rate | **0.00%** | 0.00% |
+
+The first run includes serverless cold starts; the warm run passes the script's
+`p(95)<300` threshold. The API functions are colocated with the database in
+`fra1` (`x-vercel-id: fra1::fra1`).
+
+```bash
+k6 run --vus 10 --duration 20s \
+  -e BASE_URL=https://vogric-challenge.vercel.app \
+  -e ORG_ID=<acme-org-id> load/tasks.js
+```
+
 ---
 
 ## Verification: how to reproduce it
@@ -199,8 +220,8 @@ Everything below was executed on the commit in this branch.
 | Lint | `npm run lint` | 0 errors, 0 warnings (`--max-warnings=0`) |
 | Unit / integration | `npm test` | **89 passed** in 15 files |
 | Coverage | `npm run test:coverage` | **92.32% statements · 80.71% branches · 95.55% functions** (gate: 80/70/80) |
-| End-to-end | `npm run test:e2e` | **16 passed** |
-| Production build | `npm run build` | OK · First Load JS 103 kB · middleware 35.5 kB |
+| End-to-end | `npm run test:e2e` | **17 passed** |
+| Production build | `npm run build` | OK · First Load JS 103 kB · middleware 33.8 kB |
 
 The E2E suite needs its own database and refuses to run against anything whose name does not contain `test`:
 
@@ -215,7 +236,7 @@ npm run test:e2e
 
 **What is *not* covered**, stated on purpose:
 
-- Visual regression, load testing, and contract tests against a deployed environment.
+- Visual regression and contract tests against a deployed environment.
 - The migration was verified against a database with real rows (three legacy statuses survived, an invalid value fails loudly), but not against a large locked table.
 - Route handlers are covered by their own authorization tests, which sit outside the `lib/` coverage gate.
 
