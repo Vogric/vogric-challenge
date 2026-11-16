@@ -201,7 +201,7 @@ docs/           ADRs, runbook, security and performance notes
 
 ## Decisions and trade-offs
 
-The six decisions worth arguing about, and what each one cost. Full context in [`docs/adr`](./docs/adr/README.md).
+The seven decisions worth arguing about, and what each one cost. Full context in [`docs/adr`](./docs/adr/README.md).
 
 | Decision | What we gained | What we gave up |
 |---|---|---|
@@ -323,7 +323,7 @@ No known defect is hidden here. Each of these is a deliberate scope boundary or 
 
 | Document | For |
 |---|---|
-| [`docs/adr/`](./docs/adr/README.md) | Six architecture decision records: JWT sessions, active-organization cookie, cursor pagination, observability, single pagination path, middleware |
+| [`docs/adr/`](./docs/adr/README.md) | Seven architecture decision records: JWT sessions, active-organization cookie, cursor pagination, observability, single pagination path, middleware, enterprise identity |
 | [`docs/runbook.md`](./docs/runbook.md) | Deploy, migrate, roll back |
 | [`docs/security.md`](./docs/security.md) | Threat notes and the production auth checklist |
 | [`docs/performance.md`](./docs/performance.md) | Rendering and caching strategy in detail |
