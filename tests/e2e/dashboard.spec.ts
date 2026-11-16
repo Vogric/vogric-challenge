@@ -11,6 +11,18 @@ async function signIn(page: Page) {
   await expect(page).toHaveURL('/dashboard')
 }
 
+async function assertNoSeriousA11y(page: Page) {
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+    .analyze()
+
+  const serious = results.violations
+    .filter((violation) => violation.impact === 'critical' || violation.impact === 'serious')
+    .map((violation) => ({ id: violation.id, impact: violation.impact, help: violation.help }))
+
+  expect(serious).toEqual([])
+}
+
 test.describe('Dashboard with isolated fixtures', () => {
   test('shows real counts from the test database, not production', async ({ page }) => {
     await signIn(page)
@@ -52,15 +64,7 @@ test.describe('Dashboard with isolated fixtures', () => {
   test('has no serious accessibility violations on the dashboard', async ({ page }) => {
     await signIn(page)
 
-    const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-      .analyze()
-
-    const serious = results.violations
-      .filter((violation) => violation.impact === 'critical' || violation.impact === 'serious')
-      .map((violation) => ({ id: violation.id, impact: violation.impact, help: violation.help }))
-
-    expect(serious).toEqual([])
+    await assertNoSeriousA11y(page)
   })
 
   test('has no serious accessibility violations on the tasks page and one h1', async ({ page }) => {
@@ -73,15 +77,7 @@ test.describe('Dashboard with isolated fixtures', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Projects' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeVisible()
 
-    const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-      .analyze()
-
-    const serious = results.violations
-      .filter((violation) => violation.impact === 'critical' || violation.impact === 'serious')
-      .map((violation) => ({ id: violation.id, impact: violation.impact, help: violation.help }))
-
-    expect(serious).toEqual([])
+    await assertNoSeriousA11y(page)
   })
 
   test('shows real members and a role control for admins', async ({ page }) => {
@@ -116,6 +112,38 @@ test.describe('Dashboard with isolated fixtures', () => {
     await expect(content.getByText('demo@example.com')).toBeVisible()
     await expect(content.getByText('Acme Corp')).toBeVisible()
     await expect(content.getByText('ADMIN', { exact: true })).toBeVisible()
+  })
+
+  test('has no serious accessibility violations on team, audit, settings, and the palette', async ({ page }) => {
+    await signIn(page)
+
+    for (const path of ['/dashboard/members', '/dashboard/audit', '/dashboard/settings']) {
+      await page.goto(path)
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+      await assertNoSeriousA11y(page)
+    }
+
+    await page.goto('/dashboard')
+    await page.keyboard.press('Control+k')
+    await expect(page.getByRole('dialog', { name: 'Command palette' })).toBeVisible()
+    await assertNoSeriousA11y(page)
+  })
+
+  test('revokes the session server-side when signing out', async ({ page, browser }) => {
+    await signIn(page)
+
+    const session = (await page.context().cookies()).find((cookie) => cookie.name === 'session')
+    if (!session) throw new Error('Expected a session cookie after login')
+
+    await page.locator('header').getByRole('button', { name: 'Sign out', exact: true }).click()
+    await expect(page).toHaveURL('/auth/login')
+
+    const replayContext = await browser.newContext()
+    await replayContext.addCookies([session])
+    const replayPage = await replayContext.newPage()
+    await replayPage.goto('/dashboard')
+    await expect(replayPage).toHaveURL('/auth/login')
+    await replayContext.close()
   })
 
   test('exposes navigation on mobile', async ({ page }) => {

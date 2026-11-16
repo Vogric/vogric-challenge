@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ChevronRight, Moon, Search, Sun } from 'lucide-react'
+import { ChevronRight, LogOut, Moon, Search, Sun } from 'lucide-react'
 import { useTheme } from '@/hooks/useTheme'
 import { useAuth } from '@/hooks/useAuth'
 import { useLogout } from '@/hooks/useLogout'
@@ -114,9 +114,12 @@ export function Navbar({ onOpenCommandPalette }: NavbarProps) {
           onClick={logout}
           disabled={isLoggingOut}
           aria-busy={isLoggingOut}
-          className="ml-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+          aria-label={isLoggingOut ? 'Signing out...' : 'Sign out'}
+          title={isLoggingOut ? 'Signing out...' : 'Sign out'}
+          className="ml-1 inline-flex h-8 items-center gap-1.5 rounded-lg border border-transparent px-2 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isLoggingOut ? 'Signing out...' : 'Sign out'}
+          <LogOut className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+          <span className="hidden sm:inline">{isLoggingOut ? 'Signing out...' : 'Sign out'}</span>
         </button>
       </div>
     </header>

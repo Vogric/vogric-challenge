@@ -241,7 +241,7 @@ export function CommandPalette({ open, onClose, canViewAudit }: CommandPalettePr
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-medium text-foreground">{command.label}</span>
-                    <span className="block truncate text-xs text-muted-foreground">{command.description}</span>
+                    <span className={`block truncate text-xs ${index === activeIndex ? 'text-foreground/70' : 'text-muted-foreground'}`}>{command.description}</span>
                   </span>
                   {index === activeIndex && (
                     <CornerDownLeft className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />

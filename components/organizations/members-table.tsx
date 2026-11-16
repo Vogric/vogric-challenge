@@ -35,8 +35,8 @@ const ROLE_META: Record<
   ADMIN: {
     label: 'Admin',
     description: 'Full workspace access',
-    select: 'border-primary/25 bg-primary/10 text-primary',
-    avatar: 'bg-primary/10 text-primary',
+    select: 'border-primary/25 bg-primary/10 text-blue-700 dark:text-blue-300',
+    avatar: 'bg-primary text-primary-foreground',
   },
   MANAGER: {
     label: 'Manager',
@@ -47,8 +47,8 @@ const ROLE_META: Record<
   VIEWER: {
     label: 'Viewer',
     description: 'Read-only access',
-    select: 'border-border bg-muted text-muted-foreground',
-    avatar: 'bg-muted text-muted-foreground',
+    select: 'border-border bg-muted text-foreground',
+    avatar: 'bg-muted text-foreground',
   },
 }
 

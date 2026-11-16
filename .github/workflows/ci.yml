@@ -71,3 +71,16 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Performance budget
+        run: |
+          DATABASE_URL="$DATABASE_URL_TEST" PORT=3101 npm run start > /tmp/saas-dashboard-start.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://localhost:3101/auth/login > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          PERF_BASE_URL=http://localhost:3101 npm run perf:budget

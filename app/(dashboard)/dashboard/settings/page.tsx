@@ -61,7 +61,7 @@ export default async function SettingsPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
-              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-lg font-semibold text-primary-foreground">
                 {initials(user.name, user.email)}
               </span>
               <div>
