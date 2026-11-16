@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ChevronRight, Moon, Sun } from 'lucide-react'
+import { ChevronRight, Moon, Search, Sun } from 'lucide-react'
 import { useTheme } from '@/hooks/useTheme'
 import { useAuth } from '@/hooks/useAuth'
 import { useLogout } from '@/hooks/useLogout'
@@ -47,7 +47,11 @@ function initials(email: string | undefined): string {
   return email.slice(0, 2).toUpperCase()
 }
 
-export function Navbar() {
+type NavbarProps = {
+  onOpenCommandPalette: () => void
+}
+
+export function Navbar({ onOpenCommandPalette }: NavbarProps) {
   const { resolvedTheme, setTheme } = useTheme()
   const { user } = useAuth()
   const { logout, isPending: isLoggingOut } = useLogout()
@@ -65,6 +69,22 @@ export function Navbar() {
         <Breadcrumb />
       </div>
       <div className="flex-1" />
+      <button
+        type="button"
+        onClick={onOpenCommandPalette}
+        aria-keyshortcuts="Meta+K Control+K"
+        className="flex h-9 items-center gap-2 rounded-[10px] border border-border bg-card px-2.5 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <Search className="h-3.5 w-3.5" aria-hidden="true" />
+        <span className="sr-only">Search or jump to...</span>
+        <span aria-hidden="true" className="hidden sm:inline">Search or jump to...</span>
+        <kbd
+          aria-hidden="true"
+          className="hidden rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-foreground sm:inline"
+        >
+          ⌘K
+        </kbd>
+      </button>
       <button
         type="button"
         onClick={() => setTheme(nextTheme)}

@@ -126,6 +126,24 @@ test.describe('Dashboard with isolated fixtures', () => {
     await expect(mobileNav).toBeVisible()
     await expect(mobileNav.getByRole('link', { name: 'Projects' })).toBeVisible()
     await expect(mobileNav.getByRole('link', { name: 'Team' })).toBeVisible()
+    await expect(mobileNav.getByRole('link', { name: 'Audit' })).toBeVisible()
+    await expect(mobileNav.getByRole('link', { name: 'Settings' })).toBeVisible()
+  })
+
+  test('opens the command palette and navigates without a mouse', async ({ page }) => {
+    await signIn(page)
+
+    await page.keyboard.press('Control+k')
+    const dialog = page.getByRole('dialog', { name: 'Command palette' })
+    await expect(dialog).toBeVisible()
+    await expect(page.getByRole('option', { name: /Projects/ })).toBeVisible()
+
+    await page.getByLabel('Search commands').fill('team')
+    await expect(page.getByRole('option', { name: /Team/ })).toBeVisible()
+    await page.getByLabel('Search commands').press('Enter')
+
+    await expect(page).toHaveURL(/\/dashboard\/members/)
+    await expect(page.getByRole('heading', { name: 'Team members' })).toBeVisible()
   })
 
   test('filters tasks by search, status, and project and shows the page range', async ({ page }) => {
