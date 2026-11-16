@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { decodeTaskCursor, getTasksPage } from '@/lib/tasks'
 import { getRequestId, logError } from '@/lib/logger'
 import { TASK_PAGE_SIZE } from '@/types/tasks'
+import { taskStatusSchema } from '@/lib/validations/tasks'
 
 export const dynamic = 'force-dynamic'
 export const preferredRegion = 'fra1'
@@ -12,6 +13,9 @@ const querySchema = z.object({
   orgId: z.string().min(1),
   cursor: z.string().max(500).optional(),
   pageSize: z.coerce.number().int().positive().max(100).default(TASK_PAGE_SIZE),
+  q: z.string().trim().max(100).optional(),
+  status: taskStatusSchema.optional(),
+  projectId: z.string().min(1).optional(),
 })
 
 const NO_STORE_HEADERS = {
@@ -33,6 +37,9 @@ async function listTasks(req: Request) {
     orgId: searchParams.get('orgId') ?? undefined,
     cursor: searchParams.get('cursor') ?? undefined,
     pageSize: searchParams.get('pageSize') ?? undefined,
+    q: searchParams.get('q') ?? undefined,
+    status: searchParams.get('status') ?? undefined,
+    projectId: searchParams.get('projectId') ?? undefined,
   })
 
   if (!parsed.success) {
@@ -45,7 +52,7 @@ async function listTasks(req: Request) {
     )
   }
 
-  const { orgId, pageSize } = parsed.data
+  const { orgId, pageSize, q, status, projectId } = parsed.data
   const cursor = parsed.data.cursor ? decodeTaskCursor(parsed.data.cursor) : null
 
   if (parsed.data.cursor && !cursor) {
@@ -63,7 +70,7 @@ async function listTasks(req: Request) {
     return json({ error: 'Forbidden' }, 403)
   }
 
-  const result = await getTasksPage(orgId, cursor, pageSize)
+  const result = await getTasksPage(orgId, cursor, pageSize, { q, status, projectId })
 
   return json(result, 200)
 }

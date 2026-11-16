@@ -16,12 +16,16 @@ const mockTasks = [
     title: 'Task 1',
     status: 'todo' as const,
     updatedAt: '2024-01-01T00:00:00.000Z',
+    project: { id: 'project-1', name: 'Project 1' },
+    assignee: null,
   },
   {
     id: 'task-2',
     title: 'Task 2',
     status: 'in_progress' as const,
     updatedAt: '2024-01-02T00:00:00.000Z',
+    project: { id: 'project-1', name: 'Project 1' },
+    assignee: { name: 'Demo User', email: 'demo@example.com' },
   },
 ]
 

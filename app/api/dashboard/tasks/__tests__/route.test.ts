@@ -77,6 +77,35 @@ describe('GET /api/dashboard/tasks', () => {
     expect(getTasksPage).not.toHaveBeenCalled()
   })
 
+  it('passes validated search, status, and project filters to the data layer', async () => {
+    vi.mocked(db.membership.findFirst).mockResolvedValue({ id: 'm1' } as never)
+    vi.mocked(decodeTaskCursor).mockReturnValue(null as never)
+    vi.mocked(getTasksPage).mockResolvedValue({
+      tasks: [],
+      pagination: { pageSize: 50, totalCount: 0, totalPages: 0, nextCursor: null, hasNextPage: false },
+    })
+
+    const response = await GET(
+      listRequest('orgId=org-1&q=api&status=done&projectId=project-1')
+    )
+
+    expect(response.status).toBe(200)
+    expect(getTasksPage).toHaveBeenCalledWith('org-1', null, 50, {
+      q: 'api',
+      status: 'done',
+      projectId: 'project-1',
+    })
+  })
+
+  it('rejects an unknown task status before touching the data layer', async () => {
+    vi.mocked(db.membership.findFirst).mockResolvedValue({ id: 'm1' } as never)
+
+    const response = await GET(listRequest('orgId=org-1&status=blocked'))
+
+    expect(response.status).toBe(400)
+    expect(getTasksPage).not.toHaveBeenCalled()
+  })
+
   it('rejects a malformed cursor before touching the data layer', async () => {
     vi.mocked(db.membership.findFirst).mockResolvedValue({ id: 'm1' } as never)
     vi.mocked(decodeTaskCursor).mockReturnValue(null as never)
@@ -98,7 +127,11 @@ describe('GET /api/dashboard/tasks', () => {
     const response = await GET(listRequest('orgId=org-1'))
 
     expect(response.status).toBe(200)
-    expect(getTasksPage).toHaveBeenCalledWith('org-1', null, 50)
+    expect(getTasksPage).toHaveBeenCalledWith('org-1', null, 50, {
+      q: undefined,
+      status: undefined,
+      projectId: undefined,
+    })
     expect(response.headers.get('Cache-Control')).toContain('no-store')
   })
 })

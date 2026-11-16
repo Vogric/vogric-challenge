@@ -127,6 +127,30 @@ test.describe('Dashboard with isolated fixtures', () => {
     await expect(mobileNav.getByRole('link', { name: 'Team' })).toBeVisible()
   })
 
+  test('filters tasks by search, status, and project and shows the page range', async ({ page }) => {
+    await signIn(page)
+    await page.goto('/dashboard/projects')
+
+    const content = page.getByRole('region', { name: 'Dashboard content' })
+    const rows = content.locator('tbody tr')
+    await expect(rows).toHaveCount(20)
+    await expect(content.getByText('Showing 1–20 of 20')).toBeVisible()
+
+    await content.getByLabel('Search tasks').fill('Task 20 of')
+    await expect(rows).toHaveCount(1)
+    await expect(content.getByText('1 task', { exact: true })).toBeVisible()
+
+    await content.getByRole('button', { name: 'Clear' }).click()
+    await expect(rows).toHaveCount(20)
+
+    await content.getByLabel('Filter by status').selectOption('done')
+    await expect(rows).toHaveCount(7)
+
+    await content.getByLabel('Filter by project').selectOption({ label: 'API Gateway' })
+    await expect(rows).toHaveCount(1)
+    await expect(rows.first().getByText('Task 9 of API Gateway')).toBeVisible()
+  })
+
   test('loads the paginated tasks table from the API', async ({ page }) => {
     await signIn(page)
     await page.goto('/dashboard/projects')

@@ -1,16 +1,33 @@
+import type { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
-import type { Task, TaskStatus, TasksResponse } from '@/types/tasks'
+import type { TaskFilters, Task, TaskStatus, TasksResponse } from '@/types/tasks'
 
 const TASK_COUNT_TTL_MS = 30_000
 const taskCountCache = new Map<string, { count: number; expiresAt: number }>()
 
-async function getTaskCount(organizationId: string): Promise<number> {
+function filterKey(organizationId: string, filters: TaskFilters): string {
+  return [organizationId, filters.q ?? '', filters.status ?? '', filters.projectId ?? ''].join('|')
+}
+
+function buildWhere(organizationId: string, filters: TaskFilters): Prisma.TaskWhereInput {
+  return {
+    project: {
+      organizationId,
+      ...(filters.projectId ? { id: filters.projectId } : {}),
+    },
+    ...(filters.status ? { status: filters.status } : {}),
+    ...(filters.q ? { title: { contains: filters.q, mode: 'insensitive' } } : {}),
+  }
+}
+
+async function getTaskCount(organizationId: string, filters: TaskFilters): Promise<number> {
+  const key = filterKey(organizationId, filters)
   const now = Date.now()
-  const cached = taskCountCache.get(organizationId)
+  const cached = taskCountCache.get(key)
   if (cached && cached.expiresAt > now) return cached.count
 
-  const count = await db.task.count({ where: { project: { organizationId } } })
-  taskCountCache.set(organizationId, { count, expiresAt: now + TASK_COUNT_TTL_MS })
+  const count = await db.task.count({ where: buildWhere(organizationId, filters) })
+  taskCountCache.set(key, { count, expiresAt: now + TASK_COUNT_TTL_MS })
   return count
 }
 
@@ -28,16 +45,18 @@ type CursorTaskRow = {
   title: string
   status: TaskStatus
   updatedAt: Date
+  project: { id: string; name: string }
+  assignee: { name: string | null; email: string } | null
 }
 
 function serializeTask(task: CursorTaskRow): Task {
   return {
     id: task.id,
     title: task.title,
-    // `status` is a Prisma enum, so this is a real assignment check and not a
-    // cast: if the schema enum and the client union drift apart, `tsc` fails.
     status: task.status,
     updatedAt: task.updatedAt.toISOString(),
+    project: task.project,
+    assignee: task.assignee,
   }
 }
 
@@ -63,25 +82,15 @@ export function decodeTaskCursor(value: string): TaskCursor | null {
   }
 }
 
-/**
- * Keyset (cursor) pagination — the only pagination path.
- *
- * There used to be a second offset-based implementation behind `?page=`, kept
- * "for API compatibility". It was never called by the client, it forced the
- * route handler to branch on which parameters arrived, and it made the response
- * shape ambiguous (`pagination.page` meant different things per branch). It is
- * gone: one algorithm, one contract.
- *
- * Ordering is `updatedAt DESC, id DESC` so the cursor is stable when several
- * tasks share the same `updatedAt` millisecond.
- */
 export async function getTasksPage(
   organizationId: string,
   cursor: TaskCursor | null,
-  pageSize: number
+  pageSize: number,
+  filters: TaskFilters = {}
 ): Promise<TasksResponse> {
-  const where = {
-    project: { organizationId },
+  const baseWhere = buildWhere(organizationId, filters)
+  const where: Prisma.TaskWhereInput = {
+    ...baseWhere,
     ...(cursor
       ? {
           OR: [
@@ -95,11 +104,18 @@ export async function getTasksPage(
   const [rows, totalCount] = await Promise.all([
     db.task.findMany({
       where,
-      select: { id: true, title: true, status: true, updatedAt: true },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        updatedAt: true,
+        project: { select: { id: true, name: true } },
+        assignee: { select: { name: true, email: true } },
+      },
       orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
       take: pageSize + 1,
     }),
-    getTaskCount(organizationId),
+    getTaskCount(organizationId, filters),
   ])
 
   const hasNextPage = rows.length > pageSize

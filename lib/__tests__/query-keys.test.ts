@@ -8,8 +8,8 @@ describe('query keys', () => {
 
   it('builds organization and cursor task keys', () => {
     expect(taskKeys.byOrg('org-1')).toEqual(['tasks', 'org-1'])
-    expect(taskKeys.cursor('org-1', null)).toEqual(['tasks', 'org-1', 'cursor', null])
-    expect(taskKeys.cursor('org-1', 'abc')).toEqual(['tasks', 'org-1', 'cursor', 'abc'])
+    expect(taskKeys.cursor('org-1', null)).toEqual(['tasks', 'org-1', 'cursor', null, '', '', ''])
+    expect(taskKeys.cursor('org-1', 'abc')).toEqual(['tasks', 'org-1', 'cursor', 'abc', '', '', ''])
     expect(taskKeys.all).toEqual(['tasks'])
   })
 

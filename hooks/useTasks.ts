@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-query'
 import { useNotifications } from '@/hooks/useNotifications'
 import { taskKeys } from '@/lib/query-keys'
-import { tasksResponseSchema, type Task, type TasksResponse, type TaskStatus } from '@/lib/validations/tasks'
+import { tasksResponseSchema, type Task, type TaskFilters, type TasksResponse, type TaskStatus } from '@/lib/validations/tasks'
 import { TASK_PAGE_SIZE } from '@/types/tasks'
 
 type UpdateTaskStatusInput = {
@@ -25,6 +25,7 @@ async function fetchTasks(
   orgId: string,
   pageSize: number,
   cursor: string | null,
+  filters: TaskFilters,
   signal?: AbortSignal
 ): Promise<TasksResponse> {
   const params = new URLSearchParams({
@@ -32,6 +33,9 @@ async function fetchTasks(
     pageSize: String(pageSize),
   })
   if (cursor) params.set('cursor', cursor)
+  if (filters.q) params.set('q', filters.q)
+  if (filters.status) params.set('status', filters.status)
+  if (filters.projectId) params.set('projectId', filters.projectId)
 
   const res = await fetch(`/api/dashboard/tasks?${params.toString()}`, {
     cache: 'no-store',
@@ -59,15 +63,16 @@ async function updateTaskStatus(input: UpdateTaskStatusInput): Promise<Task> {
 export function useTasks(
   orgId: string | null,
   pageSize = TASK_PAGE_SIZE,
-  cursor: string | null = null
+  cursor: string | null = null,
+  filters: TaskFilters = {}
 ) {
   return useQuery({
-    queryKey: taskKeys.cursor(orgId, cursor),
+    queryKey: taskKeys.cursor(orgId, cursor, filters),
     queryFn: ({ signal }) => {
       if (!orgId) throw new Error('orgId is required to fetch tasks')
       // TanStack Query aborts this signal when the page changes, so a slow
       // response for an obsolete page can never overwrite the latest one.
-      return fetchTasks(orgId, pageSize, cursor, signal)
+      return fetchTasks(orgId, pageSize, cursor, filters, signal)
     },
     enabled: Boolean(orgId),
     staleTime: 1000 * 60 * 2,

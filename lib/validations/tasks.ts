@@ -11,11 +11,29 @@ import { z } from 'zod'
  */
 export const taskStatusSchema = z.enum(['todo', 'in_progress', 'done'])
 
+export const taskProjectSchema = z.object({
+  id: z.string().min(1),
+  name: z.string(),
+})
+
+export const taskAssigneeSchema = z.object({
+  name: z.string().nullable(),
+  email: z.string(),
+})
+
 export const taskSchema = z.object({
   id: z.string().min(1),
   title: z.string(),
   status: taskStatusSchema,
   updatedAt: z.string().datetime({ offset: true }),
+  project: taskProjectSchema,
+  assignee: taskAssigneeSchema.nullable(),
+})
+
+export const taskFiltersSchema = z.object({
+  q: z.string().trim().max(100).optional(),
+  status: taskStatusSchema.optional(),
+  projectId: z.string().min(1).optional(),
 })
 
 export const tasksPaginationSchema = z.object({
@@ -35,3 +53,4 @@ export type TaskStatus = z.infer<typeof taskStatusSchema>
 export type Task = z.infer<typeof taskSchema>
 export type TasksPagination = z.infer<typeof tasksPaginationSchema>
 export type TasksResponse = z.infer<typeof tasksResponseSchema>
+export type TaskFilters = z.infer<typeof taskFiltersSchema>
