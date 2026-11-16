@@ -6,6 +6,7 @@ import { rejectCrossOrigin } from '@/lib/csrf'
 import { recordAuditEvent } from '@/lib/audit'
 
 export const dynamic = 'force-dynamic'
+export const preferredRegion = 'fra1'
 
 const bodySchema = z.object({
   role: z.enum(['ADMIN', 'MANAGER', 'VIEWER']),

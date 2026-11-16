@@ -7,6 +7,7 @@ import { rejectCrossOrigin } from '@/lib/csrf'
 import { getRequestId, logError } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
+export const preferredRegion = 'fra1'
 
 const NO_STORE = { 'Cache-Control': 'no-store' }
 

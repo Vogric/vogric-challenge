@@ -1,6 +1,7 @@
 import { db } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
+export const preferredRegion = 'fra1'
 export const revalidate = 0
 
 const NO_STORE = { 'Cache-Control': 'no-store' }

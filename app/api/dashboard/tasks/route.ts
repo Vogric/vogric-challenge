@@ -6,6 +6,7 @@ import { getRequestId, logError } from '@/lib/logger'
 import { TASK_PAGE_SIZE } from '@/types/tasks'
 
 export const dynamic = 'force-dynamic'
+export const preferredRegion = 'fra1'
 
 const querySchema = z.object({
   orgId: z.string().min(1),

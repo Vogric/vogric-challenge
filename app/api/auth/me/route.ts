@@ -1,6 +1,7 @@
 import { getCurrentUserFromRequest } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
+export const preferredRegion = 'fra1'
 export const revalidate = 0
 
 const NO_STORE = {

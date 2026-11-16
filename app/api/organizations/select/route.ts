@@ -6,6 +6,7 @@ import { ACTIVE_ORG_COOKIE } from '@/lib/organizations'
 import { rejectCrossOrigin } from '@/lib/csrf'
 
 export const dynamic = 'force-dynamic'
+export const preferredRegion = 'fra1'
 
 const bodySchema = z.object({
   organizationId: z.string().min(1),
