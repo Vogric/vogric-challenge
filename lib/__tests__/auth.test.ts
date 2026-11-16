@@ -57,7 +57,8 @@ describe('Auth', () => {
       userId: 'user-123',
       sessionToken: 'session-1',
       expires: new Date(Date.now() + 60_000),
-    })
+      user: { id: 'user-123', email: 'test@example.com', name: 'Test User' },
+    } as unknown as Awaited<ReturnType<typeof db.session.findUnique>>)
   })
 
   afterEach(() => {
@@ -114,8 +115,6 @@ describe('Auth', () => {
         updatedAt: new Date(),
       }
 
-      vi.mocked(db.user.findUnique).mockResolvedValue(user)
-
       const token = await createJWT(user)
       const result = await getCurrentUserFromToken(token)
 
@@ -132,8 +131,8 @@ describe('Auth', () => {
       expect(db.user.findUnique).not.toHaveBeenCalled()
     })
 
-    it('should return null if user does not exist in DB', async () => {
-      vi.mocked(db.user.findUnique).mockResolvedValue(null)
+    it('should return null if the active session no longer exists', async () => {
+      vi.mocked(db.session.findUnique).mockResolvedValueOnce(null)
 
       const token = await createJWT({ id: 'user-999', email: 'x@y.com', name: 'X' })
       const result = await getCurrentUserFromToken(token)
@@ -199,7 +198,8 @@ describe('Auth', () => {
         userId: 'user-123',
         sessionToken: 'session-1',
         expires: new Date(Date.now() - 1000),
-      })
+        user: { id: 'user-123', email: 'test@example.com', name: 'Test User' },
+      } as unknown as Awaited<ReturnType<typeof db.session.findUnique>>)
 
       const request = new Request('http://localhost/api/test', {
         headers: { cookie: 'session=token-123' },

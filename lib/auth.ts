@@ -30,26 +30,25 @@ export async function getSessionFromCookie(cookieHeader: string | undefined): Pr
   return verifyJWT(token)
 }
 
-async function hasActiveSession(payload: SessionPayload): Promise<boolean> {
-  if (!payload.jti) return false
+async function getUserForSession(payload: SessionPayload) {
+  if (!payload.jti) return null
 
   const session = await db.session.findUnique({
     where: { sessionToken: payload.jti },
-    select: { expires: true },
+    select: {
+      expires: true,
+      user: { select: { id: true, email: true, name: true } },
+    },
   })
 
-  return Boolean(session && session.expires > new Date())
+  if (!session || session.expires <= new Date()) return null
+  return session.user
 }
 
 export async function getCurrentUserFromToken(token: string) {
   const payload = await verifyJWT(token)
-  if (!payload || !(await hasActiveSession(payload))) return null
-
-  const user = await db.user.findUnique({
-    where: { id: payload.userId },
-    select: { id: true, email: true, name: true },
-  })
-  return user
+  if (!payload) return null
+  return getUserForSession(payload)
 }
 
 export async function getCurrentUserFromRequest(request: Request) {
@@ -57,13 +56,8 @@ export async function getCurrentUserFromRequest(request: Request) {
   if (!cookieHeader) return null
 
   const payload = await getSessionFromCookie(cookieHeader)
-  if (!payload || !(await hasActiveSession(payload))) return null
-
-  const user = await db.user.findUnique({
-    where: { id: payload.userId },
-    select: { id: true, email: true, name: true },
-  })
-  return user
+  if (!payload) return null
+  return getUserForSession(payload)
 }
 
 export async function revokeSessionFromCookie(cookieHeader: string | undefined) {

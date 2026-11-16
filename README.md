@@ -198,7 +198,7 @@ Everything below was executed on the commit in this branch.
 | Types | `npm run typecheck` | 0 errors |
 | Lint | `npm run lint` | 0 errors, 0 warnings (`--max-warnings=0`) |
 | Unit / integration | `npm test` | **89 passed** in 15 files |
-| Coverage | `npm run test:coverage` | **92.12% statements · 81.29% branches · 95.45% functions** (gate: 80/70/80) |
+| Coverage | `npm run test:coverage` | **92.32% statements · 80.71% branches · 95.55% functions** (gate: 80/70/80) |
 | End-to-end | `npm run test:e2e` | **16 passed** |
 | Production build | `npm run build` | OK · First Load JS 103 kB · middleware 35.5 kB |
 
