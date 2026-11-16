@@ -3,6 +3,7 @@
 import { useEffect, useId, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
+import { ChevronDown } from 'lucide-react'
 import { taskKeys } from '@/lib/query-keys'
 import { useWorkspaceTransition } from '@/contexts/WorkspaceTransitionContext'
 import type { MembershipSummary } from '@/types/organizations'
@@ -11,12 +12,14 @@ type OrganizationSwitcherProps = {
   memberships: MembershipSummary[]
   activeOrganizationId: string | null
   ariaLabel?: string
+  tone?: 'dark' | 'light'
 }
 
 export function OrganizationSwitcher({
   memberships,
   activeOrganizationId,
   ariaLabel = 'Organization',
+  tone = 'light',
 }: OrganizationSwitcherProps) {
   const router = useRouter()
   const selectId = useId()
@@ -88,33 +91,49 @@ export function OrganizationSwitcher({
     }
   }
 
+  const dark = tone === 'dark'
+
   return (
     <div className="space-y-1.5" aria-busy={isBusy}>
       <label
         htmlFor={selectId}
-        className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+        className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${
+          dark ? 'text-sidebar-muted' : 'text-muted-foreground'
+        }`}
       >
-        Organization
+        Workspace
       </label>
-      <select
-        id={selectId}
-        aria-label={ariaLabel}
-        value={selectedId ?? ''}
-        disabled={isBusy || memberships.length === 0}
-        onChange={(event) => void handleChange(event.target.value)}
-        className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60"
-      >
-        {memberships.map((membership) => (
-          <option key={membership.organizationId} value={membership.organizationId}>
-            {membership.organization.name}
-          </option>
-        ))}
-      </select>
+      <div className="relative">
+        <select
+          id={selectId}
+          aria-label={ariaLabel}
+          value={selectedId ?? ''}
+          disabled={isBusy || memberships.length === 0}
+          onChange={(event) => void handleChange(event.target.value)}
+          className={`h-10 w-full appearance-none rounded-[10px] border px-3 pr-9 text-sm font-medium outline-none transition-colors focus-visible:ring-2 disabled:opacity-60 ${
+            dark
+              ? 'border-sidebar-border bg-white/[0.06] text-sidebar-foreground hover:bg-white/[0.09] focus-visible:ring-primary/60'
+              : 'border-input bg-card text-foreground hover:border-foreground/25 focus-visible:ring-ring/20'
+          }`}
+        >
+          {memberships.map((membership) => (
+            <option key={membership.organizationId} value={membership.organizationId} className="text-foreground">
+              {membership.organization.name}
+            </option>
+          ))}
+        </select>
+        <ChevronDown
+          className={`pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 ${
+            dark ? 'text-sidebar-muted' : 'text-muted-foreground'
+          }`}
+          aria-hidden="true"
+        />
+      </div>
       {isBusy && (
         <div
           role="progressbar"
           aria-label="Switching organization"
-          className="h-0.5 w-full overflow-hidden rounded bg-muted"
+          className={`h-0.5 w-full overflow-hidden rounded ${dark ? 'bg-white/10' : 'bg-muted'}`}
         >
           <div className="h-full w-1/2 animate-pulse bg-primary" />
         </div>
@@ -122,7 +141,7 @@ export function OrganizationSwitcher({
       <p
         role={error ? 'alert' : 'status'}
         aria-live="polite"
-        className={`text-[11px] ${error ? 'text-destructive' : 'text-muted-foreground'}`}
+        className={`text-[11px] ${error ? 'text-destructive' : dark ? 'text-sidebar-muted' : 'text-muted-foreground'}`}
       >
         {error ?? (isBusy ? `Switching to ${selectedName}...` : '')}
       </p>

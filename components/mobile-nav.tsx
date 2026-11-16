@@ -9,7 +9,7 @@ import type { MembershipSummary } from '@/types/organizations'
 const MOBILE_ITEMS = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Projects', href: '/dashboard/projects', icon: FolderKanban },
-  { name: 'Members', href: '/dashboard/members', icon: Users },
+  { name: 'Team', href: '/dashboard/members', icon: Users },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 

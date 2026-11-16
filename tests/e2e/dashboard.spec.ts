@@ -21,12 +21,12 @@ test.describe('Dashboard with isolated fixtures', () => {
     await expect(page.getByTestId('stat-projects')).toHaveText('5')
     await expect(page.getByTestId('stat-pending')).toHaveText('14')
     await expect(page.getByTestId('stat-members')).toHaveText('1')
-    await expect(page.getByText('demo@example.com')).toBeVisible()
+    await expect(page.locator('header').getByText('demo@example.com')).toBeVisible()
   })
 
   test('moves focus to the dashboard content after navigation', async ({ page }) => {
     await signIn(page)
-    await page.getByRole('link', { name: 'Projects' }).click()
+    await page.getByRole('navigation', { name: 'Primary navigation' }).getByRole('link', { name: 'Projects' }).click()
     await expect(page).toHaveURL('/dashboard/projects')
     await expect(page.getByRole('region', { name: 'Dashboard content' })).toBeFocused()
   })
@@ -124,7 +124,7 @@ test.describe('Dashboard with isolated fixtures', () => {
     const mobileNav = page.getByRole('navigation', { name: 'Mobile navigation' })
     await expect(mobileNav).toBeVisible()
     await expect(mobileNav.getByRole('link', { name: 'Projects' })).toBeVisible()
-    await expect(mobileNav.getByRole('link', { name: 'Members' })).toBeVisible()
+    await expect(mobileNav.getByRole('link', { name: 'Team' })).toBeVisible()
   })
 
   test('loads the paginated tasks table from the API', async ({ page }) => {

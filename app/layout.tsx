@@ -1,27 +1,29 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 import './globals.css'
 import { Providers } from './providers'
 import { WebVitals } from '@/components/web-vitals'
 
-const inter = Inter({ subsets: ['latin'] })
-
 export const metadata: Metadata = {
-  title: 'SaaS Dashboard',
-  description: 'Dashboard B2B Senior React / Next.js Demo',
+  title: 'Vogric Ops — Multi-tenant dashboard',
+  description: 'Multi-tenant operations dashboard built with Next.js and Prisma',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+      <body className="font-sans">
         <Providers>
-          {/* Skip link for keyboard accessibility */}
-          <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-black focus:rounded-md focus:font-bold">
+          <a
+            href="#main-content"
+            className="sr-only rounded-md bg-card px-4 py-2 font-semibold text-foreground shadow-sm focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50"
+          >
             Skip to main content
           </a>
           <main id="main-content">{children}</main>
         </Providers>
+        <WebVitals />
       </body>
     </html>
   )

@@ -6,11 +6,17 @@ export type StatCardProps = {
   accent?: 'primary' | 'destructive' | 'secondary' | 'success'
 }
 
-const ACCENT_CLASSES: Record<NonNullable<StatCardProps['accent']>, string> = {
-  primary: 'bg-primary text-primary-foreground',
-  destructive: 'bg-destructive text-destructive-foreground',
-  secondary: 'bg-secondary text-secondary-foreground',
-  success: 'bg-green-700 text-white',
+const numberFormatter = new Intl.NumberFormat('en-US')
+
+function formatValue(value: string | number): string {
+  return typeof value === 'number' ? numberFormatter.format(value) : value
+}
+
+const ACCENT_DOTS: Record<NonNullable<StatCardProps['accent']>, string> = {
+  primary: 'bg-primary',
+  destructive: 'bg-red-500',
+  secondary: 'bg-foreground/40',
+  success: 'bg-emerald-500',
 }
 
 export function StatCard({
@@ -21,17 +27,20 @@ export function StatCard({
   accent = 'primary',
 }: StatCardProps) {
   return (
-    <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-      <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-        <span
-          data-testid={valueTestId}
-          className={`rounded-full px-2 py-0.5 text-xs tabular-nums ${ACCENT_CLASSES[accent]}`}
-        >
-          {value}
-        </span>
+    <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgba(16,24,40,0.06),0_1px_3px_rgba(16,24,40,0.08)]">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          {title}
+        </p>
+        <span className={`h-2 w-2 rounded-full ${ACCENT_DOTS[accent]}`} aria-hidden="true" />
       </div>
-      <p className="text-sm text-muted-foreground">{description}</p>
+      <p
+        data-testid={valueTestId}
+        className="mt-3 text-[34px] font-semibold leading-none tracking-[-0.03em] tabular-nums text-foreground"
+      >
+        {formatValue(value)}
+      </p>
+      <p className="mt-2 text-sm leading-5 text-muted-foreground">{description}</p>
     </div>
   )
 }

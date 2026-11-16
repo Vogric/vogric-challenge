@@ -21,8 +21,8 @@ test.describe('Authentication', () => {
 
     await test.step('Verify sidebar and authenticated user', async () => {
       await expect(page.getByRole('link', { name: 'Dashboard' }).first()).toBeVisible()
-      await expect(page.getByText('SaaS')).toBeVisible()
-      await expect(page.getByText('demo@example.com')).toBeVisible()
+      await expect(page.getByRole('complementary').getByText('Vogric')).toBeVisible()
+      await expect(page.locator('header').getByText('demo@example.com')).toBeVisible()
     })
 
     await test.step('Verify the session cookie is present and HttpOnly', async () => {
@@ -42,7 +42,7 @@ test.describe('Authentication', () => {
     await test.step('Verify the session survives a full reload', async () => {
       await page.reload({ waitUntil: 'networkidle' })
       await expect(page).toHaveURL('/dashboard')
-      await expect(page.getByText('demo@example.com')).toBeVisible()
+      await expect(page.locator('header').getByText('demo@example.com')).toBeVisible()
       await expect(page.getByTestId('stat-projects')).toHaveText('5')
     })
   })
