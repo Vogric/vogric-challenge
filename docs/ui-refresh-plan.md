@@ -1,5 +1,9 @@
 # UI refresh plan — Editorial Ops
 
+> Status (2026-11-16): Phases 1–5 shipped. Phase 6 shipped screenshot capture,
+> the authenticated performance budget, and login visual snapshots; remaining
+> work is external observability and broader visual coverage.
+
 ## Objective
 
 Make the demo look like a product built by an infrastructure company, not a
@@ -208,8 +212,8 @@ Add assignees with names, realistic projects and recent timestamps. Keep the
 
 ### Phase 6 — Polish + QA (1 day)
 
-- Visual snapshots for login, dashboard, tasks, members, audit.
-- Lighthouse/perf budget; no bundle regression >5%.
+- Visual snapshots for login; dashboard/team/audit coverage remains.
+- Authenticated LCP/CLS/TTFB and JS-transfer budget shipped (`npm run perf:budget`).
 - Final screenshots for README/video; update demo recording.
 
 ## Quality gates
@@ -219,7 +223,7 @@ Add assignees with names, realistic projects and recent timestamps. Keep the
 - `npm run test:e2e` passes; axe 0 critical/serious on all screens.
 - Lighthouse: LCP < 2.5s, CLS < 0.1, INP < 200ms on dashboard.
 - No horizontal scroll at 390px.
-- Visual snapshots reviewed in PR.
+- Login visual snapshots reviewed in PR; other screens are captured but not diffed.
 
 ## Risks and trade-offs
 
@@ -227,7 +231,7 @@ Add assignees with names, realistic projects and recent timestamps. Keep the
 |---|---|
 | Redesign breaks E2E selectors | Add `data-testid` only where semantics are unstable; prefer roles/labels |
 | Fonts add weight | Subset Geist; preload only Sans |
-| Command palette adds JS | Use `cmdk`; lazy-load the palette |
+| Command palette adds JS | Custom lightweight palette avoids a new dependency |
 | New colors break dark mode | Define both tokens before component work |
 | More UI work hides backend strengths | Keep the technical proof in README, not in the dashboard |
 

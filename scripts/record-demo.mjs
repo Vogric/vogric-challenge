@@ -91,7 +91,7 @@ await page.waitForTimeout(1_800)
 
 await page.goto(`${baseUrl}/dashboard`, { waitUntil: 'networkidle' })
 await page.waitForTimeout(1_000)
-await caption('113 tests · 92.68% coverage · p95 180 ms', 'Live: vogric-challenge.vercel.app')
+await caption('115 tests · 92.68% coverage · p95 180 ms', 'Live: vogric-challenge.vercel.app')
 await page.waitForTimeout(2_400)
 
 const video = page.video()

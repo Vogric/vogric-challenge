@@ -5,6 +5,7 @@ const testDatabaseUrl = getTestDatabaseUrl()
 
 export default defineConfig({
   testDir: './tests/e2e',
+  snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
   fullyParallel: false,
   retries: process.env.CI ? 2 : 0,
   reporter: 'html',

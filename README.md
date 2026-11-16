@@ -11,7 +11,7 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 ![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)
 ![React](https://img.shields.io/badge/React-19-61dafb.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)
-![Tests](https://img.shields.io/badge/Tests-113%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/Tests-115%20passing-brightgreen.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
 
@@ -20,7 +20,7 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 | Signal | Value |
 |---|---|
 | Live deployment | <https://vogric-challenge.vercel.app> |
-| Automated tests | **113** (94 unit + 19 E2E) |
+| Automated tests | **115** (94 unit + 21 E2E) |
 | Coverage gate | **92.68% statements** · 81.93% branches · 95.74% functions |
 | Tasks p95 (warm) | **180 ms** at 10 VUs · 0.00% errors |
 | Middleware | **33.8 kB** |
@@ -138,7 +138,7 @@ Generate a session secret with `openssl rand -base64 48`.
 | `npm run start` | Serve a production build |
 | `npm test` | Unit and integration tests (Vitest, 94 tests) |
 | `npm run test:coverage` | The same suite plus the coverage gate |
-| `npm run test:e2e` | Playwright against an isolated test database (19 tests) |
+| `npm run test:e2e` | Playwright against an isolated test database (21 tests) |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint with `--max-warnings=0` |
 | `npm run seed` | Idempotent fixtures: 3 organizations, 2 users, 15 projects, 60 tasks |
@@ -263,7 +263,7 @@ Everything below was executed on the commit in this branch.
 | Lint | `npm run lint` | 0 errors, 0 warnings (`--max-warnings=0`) |
 | Unit / integration | `npm test` | **89 passed** in 15 files |
 | Coverage | `npm run test:coverage` | **92.68% statements · 81.93% branches · 95.74% functions** (gate: 80/70/80) |
-| End-to-end | `npm run test:e2e` | **19 passed** |
+| End-to-end | `npm run test:e2e` | **21 passed** |
 | Production build | `npm run build` | OK · First Load JS 103 kB · middleware 33.8 kB |
 
 The E2E suite needs its own database and refuses to run against anything whose name does not contain `test`:
@@ -275,11 +275,11 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-**What the E2E suite covers:** login (valid, invalid, client-side validation), the middleware gate, logout, an authenticated visitor landing back on the login page, real counters read from the isolated database, organization switching, members and role controls, settings, mobile navigation, the paginated task table, a cross-tenant mutation returning 403, and two axe accessibility scans (dashboard and tasks) that fail on any `critical` or `serious` violation.
+**What the E2E suite covers:** login (valid, invalid, client-side validation), the middleware gate, logout, an authenticated visitor landing back on the login page, real counters read from the isolated database, organization switching, members and role controls, settings, mobile navigation, the command palette, task search/status/project filters, cursor pagination, a cross-tenant mutation returning 403, two axe accessibility scans (dashboard and tasks), and login visual snapshots verified across desktop and mobile.
 
 **What is *not* covered**, stated on purpose:
 
-- Visual regression and contract tests against a deployed environment.
+- Broader visual regression (dashboard/team/audit) and contract tests against a deployed environment.
 - The migration was verified against a database with real rows (three legacy statuses survived, an invalid value fails loudly), but not against a large locked table.
 - Route handlers are covered by their own authorization tests, which sit outside the `lib/` coverage gate.
 
@@ -308,12 +308,13 @@ No known defect is hidden here. Each of these is a deliberate scope boundary or 
 | Gap | Status | Why |
 |---|---|---|
 | No internationalization; UI strings are hardcoded English | Accepted | Scope for a single-locale demo; the plumbing (one strings module) would be the first step |
-| Naming drift: route `/dashboard/projects`, link *Projects*, heading *Tasks* | Accepted | The page lists tasks; the route is the legacy name. Renaming it touches both navs and the E2E specs for no user-visible gain |
+| Naming drift: route `/dashboard/projects`, link *Projects*, heading *Projects* | Accepted | The route is the legacy name; the page and link now agree |
 | Login is not constant-time for unknown emails | Known | bcrypt only runs for existing accounts, so response timing leaks account existence; the fix is a placeholder hash, ~6 lines |
 | Per-organization cache tags | Blocked upstream | `use cache` + `cacheTag` need `experimental.cacheComponents`, which Next 15.5 rejects outside canary |
 | No Partial Prerendering | Blocked upstream | Same version gate |
 | Middleware runs on `/api/*` to propagate the request id | Accepted | Narrowing the matcher loses log correlation; see [ADR 0006](./docs/adr/0006-edge-middleware-makes-no-security-decisions.md) |
-| No performance budget in CI | Planned | No bundle-size or Lighthouse gate on pull requests |
+| No performance budget in CI | Known | `npm run perf:budget` exists locally; a CI gate still needs a stable runner budget |
+| Visual regression covers login only | Known | Broader snapshots need deterministic fixture resets; the capture script covers all screens |
 | Password reset, email verification, OAuth | Out of scope | The session layer supports them; the flows do not exist |
 
 ---
