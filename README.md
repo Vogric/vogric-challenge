@@ -22,7 +22,7 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 | Live deployment | <https://vogric-challenge.vercel.app> |
 | Automated tests | **118** (95 unit + 23 E2E) |
 | Coverage gate | **93.18% statements** · 81.64% branches · 95.74% functions |
-| Tasks p95 (warm) | **180 ms** at 10 VUs · 0.00% errors |
+| Tasks p95 (warm) | **189 ms** at 20 VUs · 0.00% errors |
 | Middleware | **33.8 kB** |
 | Stack | Next.js 15 · React 19 · Prisma/Neon · TanStack Query |
 | Deploy | Vercel, production migrations in build |
@@ -233,20 +233,19 @@ The authorization tests are the interesting ones: `tests/e2e/tenant-isolation.sp
 
 ## Measured performance (live Vercel deployment)
 
-**k6 · 10 VUs · 20 s · `fra1` → Neon `eu-central-1`**
+**k6 · 20 VUs · 30 s · `fra1` → Neon `eu-central-1`**
 
 | Metric | Warm | Cold start |
 |---|---:|---:|
-| Tasks p95 | **180 ms** | 310 ms |
-| Tasks median | 124 ms | — |
+| Tasks p95 | **189 ms** | 310 ms (10 VU baseline) |
+| Tasks median | 131 ms | — |
 | Error rate | **0.00%** | 0.00% |
 
-The first run includes serverless cold starts; the warm run passes the script's
-`p(95)<300` threshold. The API functions are colocated with the database in
+The larger run (20 VUs, 30 s) completed **531 iterations**, with **p95 189 ms**, median **131 ms** and **0.00% errors**. The cold-start baseline was measured separately; the script enforces `p(95)<300` and `http_req_failed < 1%`. The API functions are colocated with the database in
 `fra1` (`x-vercel-id: fra1::fra1`).
 
 ```bash
-k6 run --vus 10 --duration 20s \
+k6 run --vus 20 --duration 30s \
   -e BASE_URL=https://vogric-challenge.vercel.app \
   -e ORG_ID=<acme-org-id> load/tasks.js
 ```
@@ -261,7 +260,7 @@ Everything below was executed on the commit in this branch.
 |---|---|---|
 | Types | `npm run typecheck` | 0 errors |
 | Lint | `npm run lint` | 0 errors, 0 warnings (`--max-warnings=0`) |
-| Unit / integration | `npm test` | **89 passed** in 15 files |
+| Unit / integration | `npm test` | **95 passed** in 15 files |
 | Coverage | `npm run test:coverage` | **93.18% statements · 81.64% branches · 95.74% functions** (gate: 80/70/80) |
 | End-to-end | `npm run test:e2e` | **21 passed** |
 | Production build | `npm run build` | OK · First Load JS 103 kB · middleware 33.8 kB |

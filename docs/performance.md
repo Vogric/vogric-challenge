@@ -37,12 +37,28 @@ cursor-based.
 Deployment: `a05cb1f`, functions `fra1`, Neon `eu-central-1`.
 
 ```text
-k6 · 10 VUs · 20 s
+k6 · 10 VUs · 20 s (baseline)
 warm p95:      180 ms
 warm median:   124 ms
 cold p95:      310 ms
 error rate:    0.00%
 ```
+
+## Larger live profile (2026-11-16)
+
+`load/tasks.js` with 20 VUs for 30 seconds against the production alias:
+
+```text
+checks:        1062 / 1062 passed
+iterations:    531
+tasks p95:     189.44 ms (threshold < 300 ms)
+tasks median:  130.94 ms
+error rate:    0.00%
+```
+
+This is read-only traffic against the Acme tenant. The script logs in once in
+`setup()`, reuses the session cookie, and asserts both HTTP 200 and the presence
+of the `tasks` array in every response.
 
 The cold-start run includes serverless initialization; steady state is well
 under the 300 ms threshold. This is why the endpoints use `preferredRegion =
