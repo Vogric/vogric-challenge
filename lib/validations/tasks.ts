@@ -54,3 +54,15 @@ export type Task = z.infer<typeof taskSchema>
 export type TasksPagination = z.infer<typeof tasksPaginationSchema>
 export type TasksResponse = z.infer<typeof tasksResponseSchema>
 export type TaskFilters = z.infer<typeof taskFiltersSchema>
+
+
+export const taskUpdateResponseSchema = z.object({
+  task: z.object({
+    id: z.string().min(1),
+    title: z.string(),
+    status: taskStatusSchema,
+    updatedAt: z.string().datetime({ offset: true }),
+  }),
+})
+
+export type TaskUpdateResponse = z.infer<typeof taskUpdateResponseSchema>

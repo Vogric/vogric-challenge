@@ -9,15 +9,7 @@ import { Loader2 } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { authKeys } from '@/lib/query-keys'
-import { loginSchema } from '@/lib/validations/auth'
-
-type LoginResponse = {
-  user: {
-    id: string
-    email: string
-    name?: string | null
-  }
-}
+import { loginResponseSchema, loginSchema } from '@/lib/validations/auth'
 
 export function LoginForm() {
   const router = useRouter()
@@ -61,7 +53,7 @@ export function LoginForm() {
         return
       }
 
-      const data = (await res.json()) as LoginResponse
+      const data = loginResponseSchema.parse(await res.json())
       queryClient.setQueryData(authKeys.currentUser, data.user)
       await router.push('/dashboard')
       router.refresh()

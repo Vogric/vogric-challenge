@@ -21,7 +21,7 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 |---|---|
 | Live deployment | <https://vogric-challenge.vercel.app> |
 | Automated tests | **118** (95 unit + 23 E2E) |
-| Coverage gate | **93.18% statements** · 81.64% branches · 95.74% functions |
+| Coverage gate | **93.43% statements** · 81.64% branches · 95.74% functions |
 | Tasks p95 (warm) | **189 ms** at 20 VUs · 0.00% errors |
 | Middleware | **33.8 kB** |
 | Stack | Next.js 15 · React 19 · Prisma/Neon · TanStack Query |
@@ -261,7 +261,7 @@ Everything below was executed on the commit in this branch.
 | Types | `npm run typecheck` | 0 errors |
 | Lint | `npm run lint` | 0 errors, 0 warnings (`--max-warnings=0`) |
 | Unit / integration | `npm test` | **95 passed** in 15 files |
-| Coverage | `npm run test:coverage` | **93.18% statements · 81.64% branches · 95.74% functions** (gate: 80/70/80) |
+| Coverage | `npm run test:coverage` | **93.43% statements · 81.64% branches · 95.74% functions** (gate: 80/70/80) |
 | End-to-end | `npm run test:e2e` | **21 passed** |
 | Production build | `npm run build` | OK · First Load JS 103 kB · middleware 33.8 kB |
 

@@ -9,7 +9,14 @@ import {
 } from '@tanstack/react-query'
 import { useNotifications } from '@/hooks/useNotifications'
 import { taskKeys } from '@/lib/query-keys'
-import { tasksResponseSchema, type Task, type TaskFilters, type TasksResponse, type TaskStatus } from '@/lib/validations/tasks'
+import {
+  taskUpdateResponseSchema,
+  tasksResponseSchema,
+  type TaskFilters,
+  type TasksResponse,
+  type TaskStatus,
+  type TaskUpdateResponse,
+} from '@/lib/validations/tasks'
 import { TASK_PAGE_SIZE } from '@/types/tasks'
 
 type UpdateTaskStatusInput = {
@@ -49,15 +56,14 @@ async function fetchTasks(
   return tasksResponseSchema.parse(await res.json())
 }
 
-async function updateTaskStatus(input: UpdateTaskStatusInput): Promise<Task> {
+async function updateTaskStatus(input: UpdateTaskStatusInput): Promise<TaskUpdateResponse['task']> {
   const res = await fetch(`/api/dashboard/tasks/${input.taskId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ status: input.status }),
   })
   if (!res.ok) throw new Error('Failed to update task')
-  const data = (await res.json()) as { task: Task }
-  return data.task
+  return taskUpdateResponseSchema.parse(await res.json()).task
 }
 
 export function useTasks(
@@ -85,7 +91,7 @@ export function useUpdateTaskStatus(orgId: string) {
   const { addNotification } = useNotifications()
   const queryKey = taskKeys.byOrg(orgId)
 
-  return useMutation<Task, Error, UpdateTaskStatusInput, UpdateTaskContext>({
+  return useMutation<TaskUpdateResponse['task'], Error, UpdateTaskStatusInput, UpdateTaskContext>({
     mutationFn: updateTaskStatus,
     onMutate: async (input): Promise<UpdateTaskContext> => {
       await queryClient.cancelQueries({ queryKey })
