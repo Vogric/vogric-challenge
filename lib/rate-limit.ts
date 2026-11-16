@@ -9,9 +9,18 @@ const UPSTASH_TIMEOUT_MS = 1000
 
 function pruneExpired(now: number): void {
   if (localCounters.size <= MAX_LOCAL_ENTRIES) return
+
   localCounters.forEach((value, entryKey) => {
     if (now >= value.resetTime) localCounters.delete(entryKey)
   })
+
+  // The local limiter is a degraded-mode fallback, not an unbounded store.
+  // If every entry is still inside its window, evict the oldest insertion
+  // rather than letting a flood of unique keys grow the process indefinitely.
+  if (localCounters.size > MAX_LOCAL_ENTRIES) {
+    const oldestKey = localCounters.keys().next().value
+    if (oldestKey !== undefined) localCounters.delete(oldestKey)
+  }
 }
 
 function checkLocalRateLimit(key: string, max: number, windowMs: number): RateLimitResult {

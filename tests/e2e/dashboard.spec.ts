@@ -71,7 +71,7 @@ test.describe('Dashboard with isolated fixtures', () => {
     // and "Tasks"), which breaks heading navigation for screen readers.
     await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
     await expect(page.getByRole('heading', { level: 1, name: 'Projects' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Next' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeVisible()
 
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

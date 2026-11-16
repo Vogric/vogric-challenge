@@ -11,7 +11,7 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 ![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)
 ![React](https://img.shields.io/badge/React-19-61dafb.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)
-![Tests](https://img.shields.io/badge/Tests-115%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/Tests-116%20passing-brightgreen.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
 
@@ -20,8 +20,8 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 | Signal | Value |
 |---|---|
 | Live deployment | <https://vogric-challenge.vercel.app> |
-| Automated tests | **115** (94 unit + 21 E2E) |
-| Coverage gate | **92.68% statements** · 81.29% branches · 95.74% functions |
+| Automated tests | **116** (95 unit + 21 E2E) |
+| Coverage gate | **93.18% statements** · 81.64% branches · 95.74% functions |
 | Tasks p95 (warm) | **180 ms** at 10 VUs · 0.00% errors |
 | Middleware | **33.8 kB** |
 | Stack | Next.js 15 · React 19 · Prisma/Neon · TanStack Query |
@@ -262,7 +262,7 @@ Everything below was executed on the commit in this branch.
 | Types | `npm run typecheck` | 0 errors |
 | Lint | `npm run lint` | 0 errors, 0 warnings (`--max-warnings=0`) |
 | Unit / integration | `npm test` | **89 passed** in 15 files |
-| Coverage | `npm run test:coverage` | **92.68% statements · 81.29% branches · 95.74% functions** (gate: 80/70/80) |
+| Coverage | `npm run test:coverage` | **93.18% statements · 81.64% branches · 95.74% functions** (gate: 80/70/80) |
 | End-to-end | `npm run test:e2e` | **21 passed** |
 | Production build | `npm run build` | OK · First Load JS 103 kB · middleware 33.8 kB |
 
