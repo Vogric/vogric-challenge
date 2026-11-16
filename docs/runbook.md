@@ -18,9 +18,12 @@
 
 ## Vercel production migrations
 
-`scripts/vercel-build.mjs` runs `prisma migrate deploy` only when
-`VERCEL_ENV=production`. Preview and development builds skip migrations, so
-they never mutate the production database. For a manual/self-hosted release,
+`scripts/vercel-build.mjs` runs migrations only when `VERCEL_ENV=production`.
+Before deploying, it runs `prisma migrate status`; when the schema is already
+current it skips `migrate deploy`, avoiding Neon advisory-lock contention on
+every build. If Neon exposes `DATABASE_URL_UNPOOLED`, the script uses that
+direct connection for migrations. Preview and development builds skip
+migrations, so they never mutate the production database. For a manual release,
 run `npx prisma migrate deploy` before `next build`.
 
 ## Rollback
