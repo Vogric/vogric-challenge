@@ -69,6 +69,19 @@ export async function PATCH(
       )
     }
 
+    // Selecting the current status is a no-op: do not write an audit event or
+    // churn the KPI cache for a change that never happened.
+    if (task.status === status) {
+      return Response.json({
+        task: {
+          id: task.id,
+          status: task.status,
+          title: task.title,
+          updatedAt: task.updatedAt,
+        },
+      })
+    }
+
     const updatedTask = await db.task.update({
       where: { id },
       data: { status },

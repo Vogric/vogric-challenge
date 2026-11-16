@@ -89,7 +89,7 @@ test.describe('Dashboard with isolated fixtures', () => {
     await page.goto('/dashboard/members')
 
     const content = page.getByRole('region', { name: 'Dashboard content' })
-    await expect(content.getByRole('heading', { name: 'Team Members' })).toBeVisible()
+    await expect(content.getByRole('heading', { name: 'Team members' })).toBeVisible()
     await expect(content.getByText('demo@example.com')).toBeVisible()
     await expect(content.getByLabel('Role for demo@example.com')).toHaveValue('ADMIN')
   })
@@ -98,12 +98,13 @@ test.describe('Dashboard with isolated fixtures', () => {
     await signIn(page)
     await page.goto('/dashboard/projects')
     const firstStatus = page.locator('tbody tr select').first()
-    await firstStatus.selectOption('done')
+    const currentStatus = await firstStatus.inputValue()
+    await firstStatus.selectOption(currentStatus === 'done' ? 'in_progress' : 'done')
     await page.waitForTimeout(300)
 
     await page.goto('/dashboard/audit')
     await expect(page.getByRole('heading', { name: 'Audit log' })).toBeVisible()
-    await expect(page.getByText('task.status_changed').first()).toBeVisible()
+    await expect(page.getByText('Task status changed').first()).toBeVisible()
   })
 
   test('shows the account and organization settings', async ({ page }) => {
@@ -114,7 +115,7 @@ test.describe('Dashboard with isolated fixtures', () => {
     const content = page.getByRole('region', { name: 'Dashboard content' })
     await expect(content.getByText('demo@example.com')).toBeVisible()
     await expect(content.getByText('Acme Corp')).toBeVisible()
-    await expect(content.getByText('ADMIN')).toBeVisible()
+    await expect(content.getByText('ADMIN', { exact: true })).toBeVisible()
   })
 
   test('exposes navigation on mobile', async ({ page }) => {

@@ -159,6 +159,17 @@ describe('PATCH /api/dashboard/tasks/[id]', () => {
     expect(db.task.update).not.toHaveBeenCalled()
   })
 
+  it('does not write an audit event when the status is unchanged', async () => {
+    vi.mocked(db.task.findUnique).mockResolvedValue(existingTask as never)
+    vi.mocked(db.membership.findFirst).mockResolvedValue({ role: 'ADMIN' } as never)
+
+    const response = await PATCH(patchRequest({ status: 'todo' }), params('task-1'))
+
+    expect(response.status).toBe(200)
+    expect(db.task.update).not.toHaveBeenCalled()
+    expect(db.auditEvent.create).not.toHaveBeenCalled()
+  })
+
   it('rejects an unknown status value', async () => {
     const response = await PATCH(patchRequest({ status: 'archived' }), params('task-1'))
 

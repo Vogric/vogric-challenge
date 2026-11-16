@@ -96,7 +96,9 @@ export function TaskTable({ items, updatingTaskId, onStatusChange }: TaskTablePr
                     aria-label={`Status for ${task.title}`}
                     onChange={(event) => {
                       const nextStatus = event.target.value
-                      if (isTaskStatus(nextStatus)) onStatusChange(task.id, nextStatus)
+                      if (isTaskStatus(nextStatus) && nextStatus !== task.status) {
+                        onStatusChange(task.id, nextStatus)
+                      }
                     }}
                     className="cursor-pointer appearance-none bg-transparent py-1 pl-2.5 pr-7 text-xs font-medium outline-none disabled:cursor-not-allowed"
                   >
