@@ -111,7 +111,7 @@ export default async function AuditPage() {
     )
   }
 
-  const events = await db.auditEvent.findMany({
+  const rawEvents = await db.auditEvent.findMany({
     where: { organizationId: activeMembership.organization.id },
     orderBy: { createdAt: 'desc' },
     take: 100,
@@ -124,6 +124,15 @@ export default async function AuditPage() {
       createdAt: true,
       actor: { select: { email: true, name: true } },
     },
+  })
+
+  // Older records may contain no-op transitions from before the API guard was
+  // added. They are not meaningful audit events, so do not surface them.
+  const events = rawEvents.filter((event) => {
+    const metadata = metadataOf(event.metadata)
+    const from = metadata ? stringValue(metadata.from) : null
+    const to = metadata ? stringValue(metadata.to) : null
+    return !(from && to && from === to)
   })
 
   return (

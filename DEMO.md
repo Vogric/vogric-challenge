@@ -7,7 +7,7 @@ Forward Deployed Engineers. The goal is not to show every screen; it is to show
 - Live: <https://vogric-challenge.vercel.app>
 - Demo: `demo@example.com` / `password123`
 - Read-only viewer: `viewer@example.com` / `password123`
-- 27-second product video: [`demo/saas-dashboard-demo.mp4`](./demo/saas-dashboard-demo.mp4)
+- Product video: [`demo/saas-dashboard-demo.mp4`](./demo/saas-dashboard-demo.mp4)
 
 ## Before you present
 
@@ -25,12 +25,12 @@ Forward Deployed Engineers. The goal is not to show every screen; it is to show
    dead button.”
 3. Switch Acme → Globex. “The organization is validated server-side, the cache
    is cleared, and the whole workspace shows a transition state.”
-4. Open Tasks. “Cursor pagination, optimistic status updates, rollback on a
-   forbidden mutation.”
-5. Close: “106 tests, 92% coverage gate, p95 180 ms warm. The README has the
+4. Open Projects. “Server-side search and filters, cursor pagination,
+   optimistic status updates, rollback on a forbidden mutation.”
+5. Close: “113 tests, a 92% coverage gate, p95 180 ms warm. The README has the
    architecture and the trade-offs.”
 
-Do not open Settings, Members or the ADRs in the 60-second version.
+Do not open Settings, Team, or the ADRs in the 60-second version.
 
 ## 5 minutes — technical version
 
@@ -42,12 +42,13 @@ Do not open Settings, Members or the ADRs in the 60-second version.
 | 1:15 | Tasks | “Cursor pagination, not offset. The cursor is opaque and ordered by `updatedAt + id`.” | Next page |
 | 1:40 | Change a status | “Optimistic update with rollback; the KPI tag is invalidated server-side.” | Row updates |
 | 2:00 | Audit | “Every sensitive mutation writes a tenant-scoped audit event.” | `task.status_changed` |
-| 2:25 | Members | “Role management is ADMIN-only and the last admin is protected by a serializable transaction.” | Role control |
+| 2:25 | Team | “Role management is ADMIN-only and the last admin is protected by a serializable transaction.” | Role control |
 | 2:50 | Settings / mobile | “The product is complete, not a dashboard with dead links.” | Mobile nav |
-| 3:10 | `/api/health` | “Deploy is healthy and the database is connected.” | JSON |
-| 3:30 | Tests | “89 unit, 17 E2E, axe and a coverage gate.” | Terminal |
-| 4:00 | Load | “p95 180 ms warm, 0% errors at 10 VUs; cold-start p95 310 ms is documented.” | k6 output |
-| 4:30 | ADRs | “The decisions and the rejected options are written down.” | ADR index |
+| 3:10 | Command palette | “⌘K keeps navigation keyboard-first; Audit is omitted for non-admin members.” | Palette |
+| 3:25 | `/api/health` | “Deploy is healthy and the database is connected.” | JSON |
+| 3:45 | Tests | “94 unit, 19 E2E, axe and a coverage gate.” | Terminal |
+| 4:15 | Load | “p95 180 ms warm, 0% errors at 10 VUs; cold-start p95 310 ms is documented.” | k6 output |
+| 4:45 | ADRs | “The decisions and the rejected options are written down.” | ADR index |
 
 ## 15 minutes — Staff/FDE deep dive
 

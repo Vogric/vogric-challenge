@@ -43,7 +43,7 @@ keep the query predictable. Functions run in `fra1`, next to Neon.”
 
 ## 1:20–1:40 — Team and audit
 
-**Action:** open Members, show the role control; open Audit.
+**Action:** open Team, show the role control; open Audit through the ⌘K palette.
 
 **Voice:** “Role changes are ADMIN-only, the last admin is protected by a
 serializable transaction, and sensitive mutations write a tenant-scoped audit
@@ -54,7 +54,7 @@ event.”
 **Screen:** terminal with `npm run test:coverage`, then `k6` summary, then
 `/api/health`.
 
-**Voice:** “106 tests, a 92% coverage gate, axe checks, and a warm p95 of
+**Voice:** “113 tests, a 92.68% coverage gate, axe checks, and a warm p95 of
 180 milliseconds with zero errors.”
 
 ## 1:55–2:00 — Close

@@ -4,14 +4,14 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 
 **Live demo:** <https://vogric-challenge.vercel.app> · sign in with `demo@example.com` / `password123`
 
-[![27-second product demo](./demo/saas-dashboard-demo-poster.png)](./demo/saas-dashboard-demo.mp4)
+[![Product demo](./demo/saas-dashboard-demo-poster.png)](./demo/saas-dashboard-demo.mp4)
 
-**27-second product demo:** [MP4](./demo/saas-dashboard-demo.mp4) · [demo script](./DEMO.md) · [architecture](./docs/architecture.md)
+**Product demo:** [MP4](./demo/saas-dashboard-demo.mp4) · [demo script](./DEMO.md) · [architecture](./docs/architecture.md)
 
 ![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)
 ![React](https://img.shields.io/badge/React-19-61dafb.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)
-![Tests](https://img.shields.io/badge/Tests-106%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/Tests-113%20passing-brightgreen.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
 
@@ -20,8 +20,8 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 | Signal | Value |
 |---|---|
 | Live deployment | <https://vogric-challenge.vercel.app> |
-| Automated tests | **106** (89 unit + 17 E2E) |
-| Coverage gate | **92.32% statements** · 80.71% branches · 95.55% functions |
+| Automated tests | **113** (94 unit + 19 E2E) |
+| Coverage gate | **92.68% statements** · 81.93% branches · 95.74% functions |
 | Tasks p95 (warm) | **180 ms** at 10 VUs · 0.00% errors |
 | Middleware | **33.8 kB** |
 | Stack | Next.js 15 · React 19 · Prisma/Neon · TanStack Query |
@@ -35,9 +35,23 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 - [2-minute video script](./docs/video-script.md)
 - [Interview Q&A](./docs/interview-qa.md)
 - [UI refresh plan](./docs/ui-refresh-plan.md)
+- [Screenshots](./docs/screenshots)
 - [ADRs and runbook](./docs/adr/README.md)
 
 ---
+
+## Product screens
+
+| | |
+|---|---|
+| ![Dashboard](./docs/screenshots/02-dashboard.png) | ![Tasks](./docs/screenshots/04-projects.png) |
+| ![Command palette](./docs/screenshots/03-command-palette.png) | ![Audit timeline](./docs/screenshots/05-audit.png) |
+| ![Team](./docs/screenshots/06-team.png) | ![Settings](./docs/screenshots/07-settings.png) |
+
+Mobile keeps the same information architecture through a fixed tab bar and the
+same ⌘K palette:
+
+![Mobile dashboard](./docs/screenshots/08-mobile-dashboard.png)
 
 ## Who should read what
 
@@ -58,13 +72,13 @@ Every number in this document was produced by running the command next to it. Wh
 
 A dashboard where a user belongs to several organizations with a different role in each, and sees only the data of the organization they are currently working in.
 
-Five screens:
+Six screens:
 
 | Screen | Route | What it is |
 |---|---|---|
 | Login | `/auth/login` | Credential sign-in, accessible form, server-side session |
 | Overview | `/dashboard` | KPI counters for the active organization |
-| Tasks | `/dashboard/projects` | Cursor-paginated task table with inline status editing. Reached from the **Projects** tab above the content, or by URL |
+| Tasks | `/dashboard/projects` | Cursor-paginated task table with search, status/project filters, and inline status editing |
 | Team | `/dashboard/members` | Members and role management (admins only) |
 | Audit | `/dashboard/audit` | Tenant-scoped audit trail (admins only) |
 | Settings | `/dashboard/settings` | Read-only account and workspace summary |
@@ -82,10 +96,10 @@ Signing in as `demo`, switching organization in the sidebar, and opening **Tasks
 
 1. Sign in as `demo@example.com`.
 2. The overview shows counters for **Acme Corp**, where the user is an ADMIN.
-3. Switch to **Globex** in the sidebar. The counters change and the role line says `signed in as manager`.
-4. Open **Tasks**. Change a status. The row updates immediately (optimistic), and the overview counters are invalidated server-side.
+3. Switch to **Globex** in the sidebar. The counters change; Team and Audit reflect the MANAGER role.
+4. Open **Projects** (the task list). Filter by status, change one, and watch the row update optimistically while the KPI counters are invalidated server-side.
 5. Switch to **Initech** (VIEWER) and try the same. The request is rejected with a 403, the optimistic row reverts, and a notification says why. The UI does not pre-disable the control: the API is the authority.
-6. Open **Team** in Acme Corp: role controls appear. As a VIEWER in Initech, they do not.
+6. Open **Team** in Acme Corp: role controls appear. The command palette (⌘K) jumps between sections without a mouse.
 
 ## What it demonstrates
 
@@ -122,12 +136,14 @@ Generate a session secret with `openssl rand -base64 48`.
 | `npm run dev` | Development server |
 | `npm run build` | `prisma generate` + `next build` (runs `prisma migrate deploy` first when `VERCEL_ENV=production`) |
 | `npm run start` | Serve a production build |
-| `npm test` | Unit and integration tests (Vitest, 89 tests) |
+| `npm test` | Unit and integration tests (Vitest, 94 tests) |
 | `npm run test:coverage` | The same suite plus the coverage gate |
-| `npm run test:e2e` | Playwright against an isolated test database (16 tests) |
+| `npm run test:e2e` | Playwright against an isolated test database (19 tests) |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint with `--max-warnings=0` |
 | `npm run seed` | Idempotent fixtures: 3 organizations, 2 users, 15 projects, 60 tasks |
+| `npm run perf:budget` | Authenticated LCP/CLS/TTFB and JS-transfer budget against a running build |
+| `npm run screenshots` | Refresh the README/demo screenshots in `docs/screenshots/` |
 
 ---
 
@@ -246,8 +262,8 @@ Everything below was executed on the commit in this branch.
 | Types | `npm run typecheck` | 0 errors |
 | Lint | `npm run lint` | 0 errors, 0 warnings (`--max-warnings=0`) |
 | Unit / integration | `npm test` | **89 passed** in 15 files |
-| Coverage | `npm run test:coverage` | **92.32% statements · 80.71% branches · 95.55% functions** (gate: 80/70/80) |
-| End-to-end | `npm run test:e2e` | **17 passed** |
+| Coverage | `npm run test:coverage` | **92.68% statements · 81.93% branches · 95.74% functions** (gate: 80/70/80) |
+| End-to-end | `npm run test:e2e` | **19 passed** |
 | Production build | `npm run build` | OK · First Load JS 103 kB · middleware 33.8 kB |
 
 The E2E suite needs its own database and refuses to run against anything whose name does not contain `test`:
