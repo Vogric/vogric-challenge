@@ -4,13 +4,21 @@ vi.mock('@/lib/auth', () => ({
   getCurrentUserFromRequest: vi.fn(),
 }))
 
-vi.mock('@/lib/db', () => ({
-  db: {
+vi.mock('@/lib/db', () => {
+  type MockDb = {
+    membership: { findFirst: ReturnType<typeof vi.fn> }
+    task: { findUnique: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> }
+    auditEvent: { create: ReturnType<typeof vi.fn> }
+    $transaction: (operation: (tx: MockDb) => unknown) => Promise<unknown>
+  }
+  const db: MockDb = {
     membership: { findFirst: vi.fn() },
     task: { findUnique: vi.fn(), update: vi.fn() },
     auditEvent: { create: vi.fn() },
-  },
-}))
+    $transaction: vi.fn(async (operation: (tx: MockDb) => unknown) => operation(db)),
+  }
+  return { db }
+})
 
 vi.mock('@/lib/tasks', () => ({
   getTasksPage: vi.fn(),
@@ -209,9 +217,11 @@ describe('PATCH /api/dashboard/tasks/[id]', () => {
     const response = await PATCH(patchRequest({ status: 'done' }), params('task-1'))
 
     expect(response.status).toBe(200)
+    expect(db.$transaction).toHaveBeenCalledTimes(1)
     expect(db.task.update).toHaveBeenCalledWith(
       expect.objectContaining({ data: { status: 'done' } })
     )
+    expect(db.auditEvent.create).toHaveBeenCalledTimes(1)
     expect(revalidateTag).toHaveBeenCalledWith('org-stats')
   })
 })

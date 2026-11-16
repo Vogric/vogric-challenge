@@ -2,15 +2,11 @@ import { z } from 'zod'
 import { rejectCrossOrigin } from '@/lib/csrf'
 import { getRequestId, logInfo } from '@/lib/logger'
 import { checkRateLimit } from '@/lib/rate-limit'
+import { clientIp } from '@/lib/request-ip'
 
 export const dynamic = 'force-dynamic'
 
 const MAX_REPORTS_PER_MINUTE = 30
-
-function clientIdentifier(req: Request): string {
-  const forwardedFor = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-  return forwardedFor || req.headers.get('x-real-ip') || 'anonymous'
-}
 
 const bodySchema = z.object({
   name: z.string().min(1).max(50),
@@ -28,7 +24,7 @@ export async function POST(req: Request) {
   // so it needs its own bound: otherwise anyone can flood the logs with
   // attacker-controlled payloads and inflate ingestion cost.
   const limit = await checkRateLimit(
-    `rate-limit:vitals:${clientIdentifier(req)}`,
+    `rate-limit:vitals:${clientIp(req)}`,
     MAX_REPORTS_PER_MINUTE,
     60_000
   )

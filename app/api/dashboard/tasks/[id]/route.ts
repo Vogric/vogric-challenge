@@ -82,19 +82,29 @@ export async function PATCH(
       })
     }
 
-    const updatedTask = await db.task.update({
-      where: { id },
-      data: { status },
-      select: { id: true, status: true, title: true, updatedAt: true },
-    })
+    // The status write and its audit event are one unit. If audit insertion
+    // fails, the transaction rolls back instead of leaving a changed row with
+    // no record of who changed it.
+    const updatedTask = await db.$transaction(async (tx) => {
+      const updated = await tx.task.update({
+        where: { id },
+        data: { status },
+        select: { id: true, status: true, title: true, updatedAt: true },
+      })
 
-    await recordAuditEvent({
-      organizationId: task.project.organizationId,
-      actorId: user.id,
-      action: 'task.status_changed',
-      entityType: 'task',
-      entityId: id,
-      metadata: { from: task.status, to: status, title: task.title },
+      await recordAuditEvent(
+        {
+          organizationId: task.project.organizationId,
+          actorId: user.id,
+          action: 'task.status_changed',
+          entityType: 'task',
+          entityId: id,
+          metadata: { from: task.status, to: status, title: task.title },
+        },
+        tx
+      )
+
+      return updated
     })
 
     // The KPI counters include "pending tasks", so a status change must drop the

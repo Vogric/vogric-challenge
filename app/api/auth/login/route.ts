@@ -11,6 +11,10 @@ export const preferredRegion = 'fra1'
 
 const NO_STORE = { 'Cache-Control': 'no-store' }
 
+// A real bcrypt hash keeps the unknown-email path close to the known-email
+// path in cost, so response timing does not become an account oracle.
+const DUMMY_PASSWORD_HASH = '$2a$10$OIksVVZVa2VVtLgDR8hoU.izs616UwsTvzwddvy6eOUVb8GVL5WP6'
+
 function json(data: unknown, status: number) {
   return Response.json(data, { status, headers: NO_STORE })
 }
@@ -37,12 +41,9 @@ export async function POST(req: Request) {
       select: { id: true, email: true, name: true, password: true },
     })
 
-    if (!user || !user.password) {
-      return json({ error: 'Invalid credentials' }, 401)
-    }
-
-    const isValid = await compare(password, user.password)
-    if (!isValid) {
+    const passwordHash = user?.password ?? DUMMY_PASSWORD_HASH
+    const isValid = await compare(password, passwordHash)
+    if (!user || !user.password || !isValid) {
       return json({ error: 'Invalid credentials' }, 401)
     }
 
