@@ -54,7 +54,7 @@ export function RecentActivity({ items }: { items: Activity[] }) {
         {items.length === 0 ? (
           <p className="text-sm text-muted-foreground">No activity yet.</p>
         ) : (
-          <ol className="space-y-4">
+          <ol className="space-y-4" data-visual-mask="activity-list">
             {items.map((item) => (
               <li key={item.id} className="flex items-start gap-3">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-foreground">
