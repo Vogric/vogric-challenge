@@ -1,8 +1,7 @@
 'use client'
 
 import { createContext, useContext, useMemo, useState, useEffect } from 'react'
-
-export type Theme = 'light' | 'dark' | 'system'
+import { THEME_STORAGE_KEY, type Theme } from '@/lib/theme'
 
 type ThemeContextValue = {
   theme: Theme
@@ -11,7 +10,6 @@ type ThemeContextValue = {
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
-const THEME_STORAGE_KEY = 'vogric-theme'
 
 function readStoredTheme(): Theme {
   if (typeof window === 'undefined') return 'system'
@@ -58,3 +56,4 @@ export function useTheme() {
 }
 
 export type { ThemeContextValue }
+export type { Theme } from '@/lib/theme'

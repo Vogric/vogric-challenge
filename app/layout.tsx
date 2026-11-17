@@ -5,13 +5,12 @@ import { GeistMono } from 'geist/font/mono'
 import './globals.css'
 import { Providers } from './providers'
 import { WebVitals } from '@/components/web-vitals'
+import { THEME_BOOTSTRAP } from '@/lib/theme'
 
 export const metadata: Metadata = {
   title: 'Vogric Ops — Multi-tenant dashboard',
   description: 'Multi-tenant operations dashboard built with Next.js and Prisma',
 }
-
-const THEME_BOOTSTRAP = `(function(){try{var t=localStorage.getItem('vogric-theme');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.classList.toggle('dark',d);r.style.colorScheme=d?'dark':'light';}catch(e){}})();`
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const nonce = (await headers()).get('x-nonce') ?? undefined
