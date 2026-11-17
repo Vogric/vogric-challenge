@@ -37,6 +37,7 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 - [Interview Q&A](./docs/interview-qa.md)
 - [UI refresh plan](./docs/ui-refresh-plan.md)
 - [Frontend conventions](./docs/frontend-conventions.md)
+- [Scaling notes](./docs/scaling-notes.md)
 - [Screenshots](./docs/screenshots)
 - [ADRs and runbook](./docs/adr/README.md)
 
