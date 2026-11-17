@@ -57,6 +57,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Page size budget
+        run: npm run check:pages
+
       - name: Unit tests
         run: npm test
 

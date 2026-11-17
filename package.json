@@ -19,7 +19,8 @@
     "test:coverage": "vitest run --coverage",
     "perf:budget": "node scripts/perf-budget.mjs",
     "screenshots": "node scripts/capture-screenshots.mjs",
-    "lighthouse:budget": "node scripts/lighthouse-budget.mjs"
+    "lighthouse:budget": "node scripts/lighthouse-budget.mjs",
+    "check:pages": "node scripts/check-page-size.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.11.3",
