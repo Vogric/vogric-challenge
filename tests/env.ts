@@ -16,7 +16,10 @@ export function loadEnvFile(file = '.env.local'): void {
     const match = line.match(/^(?:export\s+)?([A-Z0-9_]+)\s*=\s*(.*)$/)
     if (!match) continue
 
-    const [, key, rawValue] = match
+    const key = match[1]
+    const rawValue = match[2]
+    if (!key || rawValue === undefined) continue
+
     const value = rawValue.trim().replace(/^(['"])(.*)\1$/, '$2')
     if (process.env[key] === undefined) process.env[key] = value
   }

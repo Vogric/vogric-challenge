@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { getRequestId, logError, logInfo } from '@/lib/logger'
+import { getRequestId } from '@/lib/logger/get-request-id'
+import { logError } from '@/lib/logger/log-error'
+import { logInfo } from '@/lib/logger/log-info'
 
 describe('logger', () => {
   afterEach(() => {
@@ -10,7 +12,7 @@ describe('logger', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
     logError('test.failed', { requestId: 'req-1' })
 
-    const payload = JSON.parse(String(spy.mock.calls[0][0]))
+    const payload = JSON.parse(String(spy.mock.calls[0]?.[0]))
     expect(payload).toMatchObject({ level: 'error', event: 'test.failed', requestId: 'req-1' })
     expect(typeof payload.timestamp).toBe('string')
   })
@@ -19,7 +21,7 @@ describe('logger', () => {
     const spy = vi.spyOn(console, 'info').mockImplementation(() => {})
     logInfo('test.info', { value: 1 })
 
-    const payload = JSON.parse(String(spy.mock.calls[0][0]))
+    const payload = JSON.parse(String(spy.mock.calls[0]?.[0]))
     expect(payload).toMatchObject({ level: 'info', event: 'test.info', value: 1 })
   })
 

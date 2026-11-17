@@ -1,4 +1,21 @@
 {
   "root": true,
-  "extends": ["next/core-web-vitals"]
+  "extends": ["next/core-web-vitals"],
+  "overrides": [
+    {
+      "files": ["**/*.ts", "**/*.tsx"],
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "project": "./tsconfig.json",
+        "tsconfigRootDir": "."
+      },
+      "plugins": ["@typescript-eslint"],
+      "rules": {
+        "@typescript-eslint/consistent-type-imports": ["error", { "prefer": "type-imports" }],
+        "@typescript-eslint/no-floating-promises": "error",
+        "@typescript-eslint/no-misused-promises": "error",
+        "@typescript-eslint/switch-exhaustiveness-check": "error"
+      }
+    }
+  ]
 }

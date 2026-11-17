@@ -1,5 +1,7 @@
-import { describe, it, expect } from 'vitest'
-import { cn } from '@/lib/utils'
+import { afterEach, describe, it, expect, vi } from 'vitest'
+import { cn } from '@/lib/cn'
+import { formatRelativeTime } from '@/lib/format-relative-time'
+import { initials } from '@/lib/initials'
 
 describe('cn', () => {
   it('should merge classes correctly', () => {
@@ -27,5 +29,29 @@ describe('cn', () => {
   it('should not include falsy conditional classes', () => {
     const isActive = false
     expect(cn('base', isActive && 'active')).toBe('base')
+  })
+})
+
+
+describe('formatRelativeTime', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('formats a past timestamp relative to now', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(new Date('2026-01-01T12:00:00.000Z').getTime())
+    expect(formatRelativeTime('2026-01-01T10:00:00.000Z')).toBe('2 hours ago')
+  })
+
+  it('returns the original string for an invalid date', () => {
+    expect(formatRelativeTime('not-a-date')).toBe('not-a-date')
+  })
+})
+
+describe('initials', () => {
+  it('prefers the name and falls back to the email', () => {
+    expect(initials('Demo User', 'demo@example.com')).toBe('DE')
+    expect(initials(null, 'viewer@example.com')).toBe('VI')
+    expect(initials()).toBe('U')
   })
 })

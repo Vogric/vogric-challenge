@@ -2,6 +2,9 @@ import { defineConfig } from 'vitest/config'
 import path from 'path'
 
 export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+  },
   test: {
     environment: 'jsdom',
     include: [
@@ -28,7 +31,7 @@ export default defineConfig({
       thresholds: {
         lines: 80,
         functions: 80,
-        branches: 70,
+        branches: 80,
         statements: 80,
       },
     },

@@ -7,6 +7,18 @@ describe('checkRateLimit fallback', () => {
     delete process.env.UPSTASH_REDIS_REST_TOKEN
   })
 
+  it('evicts the oldest local counters instead of growing without bound', async () => {
+    for (let i = 0; i < 5_002; i++) {
+      await checkRateLimit(`eviction:${i}`, 1, 60_000)
+    }
+
+    // The first key was inserted before the cap and should have been evicted.
+    await expect(checkRateLimit('eviction:0', 1, 60_000)).resolves.toEqual({
+      limited: false,
+      remaining: 0,
+    })
+  })
+
   it('blocks requests after the configured maximum', async () => {
     const key = `test:${crypto.randomUUID()}`
 
