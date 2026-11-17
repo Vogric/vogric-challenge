@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useMemo, useState, useEffect } from 'react'
-import { THEME_STORAGE_KEY, type Theme } from '@/lib/theme'
+import { THEME_STORAGE_KEY, type Theme } from '@/contexts/theme'
 
 type ThemeContextValue = {
   theme: Theme
@@ -56,4 +56,4 @@ export function useTheme() {
 }
 
 export type { ThemeContextValue }
-export type { Theme } from '@/lib/theme'
+export type { Theme } from '@/contexts/theme'

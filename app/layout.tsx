@@ -5,7 +5,7 @@ import { GeistMono } from 'geist/font/mono'
 import './globals.css'
 import { Providers } from './providers'
 import { WebVitals } from '@/components/web-vitals'
-import { THEME_BOOTSTRAP } from '@/lib/theme'
+import { THEME_BOOTSTRAP } from '@/contexts/theme'
 
 export const metadata: Metadata = {
   title: 'Vogric Ops — Multi-tenant dashboard',
