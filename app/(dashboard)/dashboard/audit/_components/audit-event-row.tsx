@@ -1,6 +1,7 @@
 import { Activity, ArrowRight, ListChecks, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { metadataOf, stringValue } from './audit-format'
+import { formatRelativeTime } from '@/lib/utils'
 
 export type AuditEvent = {
   id: string
@@ -46,24 +47,6 @@ const TOKEN_STYLES: Record<string, string> = {
   ADMIN: 'border-primary/25 bg-primary/10 text-primary',
   MANAGER: 'border-amber-200 bg-amber-50 text-amber-800',
   VIEWER: 'border-border bg-muted text-muted-foreground',
-}
-
-function relativeTime(date: Date): string {
-  const seconds = Math.round((date.getTime() - Date.now()) / 1000)
-  const formatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
-  const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
-    ['year', 31536000],
-    ['month', 2592000],
-    ['week', 604800],
-    ['day', 86400],
-    ['hour', 3600],
-    ['minute', 60],
-  ]
-
-  for (const [unit, size] of units) {
-    if (Math.abs(seconds) >= size) return formatter.format(Math.round(seconds / size), unit)
-  }
-  return 'just now'
 }
 
 function Token({ value }: { value: string }) {
@@ -116,7 +99,7 @@ export function AuditEventRow({ event }: { event: AuditEvent }) {
             })}
             className="whitespace-nowrap text-xs text-muted-foreground"
           >
-            {relativeTime(event.createdAt)}
+            {formatRelativeTime(event.createdAt)}
           </time>
         </div>
 

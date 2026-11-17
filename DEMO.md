@@ -27,7 +27,7 @@ Forward Deployed Engineers. The goal is not to show every screen; it is to show
    is cleared, and the whole workspace shows a transition state.”
 4. Open Projects. “Server-side search and filters, cursor pagination,
    optimistic status updates, rollback on a forbidden mutation.”
-5. Close: “130 tests, a 93% coverage gate, p95 189 ms warm. The README has the
+5. Close: “133 tests, a 93% coverage gate, p95 189 ms warm. The README has the
    architecture and the trade-offs.”
 
 Do not open Settings, Team, or the ADRs in the 60-second version.
@@ -46,7 +46,7 @@ Do not open Settings, Team, or the ADRs in the 60-second version.
 | 2:50 | Settings / mobile | “The product is complete, not a dashboard with dead links.” | Mobile nav |
 | 3:10 | Command palette | “⌘K keeps navigation keyboard-first; Audit is omitted for non-admin members.” | Palette |
 | 3:25 | `/api/health` | “Deploy is healthy and the database is connected.” | JSON |
-| 3:45 | Tests | “100 unit, 30 E2E, axe and a coverage gate.” | Terminal |
+| 3:45 | Tests | “103 unit, 30 E2E, axe and a coverage gate.” | Terminal |
 | 4:15 | Load | “p95 189 ms warm, 0% errors at 20 VUs; cold-start p95 310 ms is documented.” | k6 output |
 | 4:45 | ADRs | “The decisions and the rejected options are written down.” | ADR index |
 

@@ -2,6 +2,7 @@
 
 import { ChevronDown } from 'lucide-react'
 import type { Task, TaskStatus } from '@/types/tasks'
+import { formatRelativeTime } from '@/lib/utils'
 
 type TaskTableProps = {
   items: Task[]
@@ -24,27 +25,6 @@ const STATUS_STYLES: Record<TaskStatus, string> = {
 
 function isTaskStatus(value: string): value is TaskStatus {
   return value === 'todo' || value === 'in_progress' || value === 'done'
-}
-
-function relativeTime(iso: string): string {
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return iso
-
-  const seconds = Math.round((date.getTime() - Date.now()) / 1000)
-  const formatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
-  const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
-    ['year', 31536000],
-    ['month', 2592000],
-    ['week', 604800],
-    ['day', 86400],
-    ['hour', 3600],
-    ['minute', 60],
-  ]
-
-  for (const [unit, size] of units) {
-    if (Math.abs(seconds) >= size) return formatter.format(Math.round(seconds / size), unit)
-  }
-  return 'just now'
 }
 
 export function TaskTable({ items, updatingTaskId, onStatusChange }: TaskTableProps) {
@@ -129,7 +109,7 @@ export function TaskTable({ items, updatingTaskId, onStatusChange }: TaskTablePr
                   title={task.updatedAt}
                   suppressHydrationWarning
                 >
-                  {relativeTime(task.updatedAt)}
+                  {formatRelativeTime(task.updatedAt)}
                 </time>
               </td>
             </tr>

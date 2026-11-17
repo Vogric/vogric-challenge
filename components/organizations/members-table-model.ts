@@ -1,4 +1,5 @@
 import type { MembershipSummary } from '@/types/organizations'
+import { initials } from '@/lib/utils'
 
 export type Member = {
   id: string
@@ -42,5 +43,5 @@ export const ROLE_META: Record<
 }
 
 export function memberInitials(member: Member): string {
-  return (member.user.name ?? member.user.email).slice(0, 2).toUpperCase()
+  return initials(member.user.name, member.user.email)
 }

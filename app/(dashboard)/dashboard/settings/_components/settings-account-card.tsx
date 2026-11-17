@@ -1,10 +1,7 @@
 import { UserRound } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { SettingsUser } from './settings-types'
-
-function initials(user: SettingsUser): string {
-  return (user.name?.slice(0, 2) ?? user.email.slice(0, 2)).toUpperCase()
-}
+import { initials } from '@/lib/utils'
 
 export function SettingsAccountCard({ user }: { user: SettingsUser }) {
   return (
@@ -19,7 +16,7 @@ export function SettingsAccountCard({ user }: { user: SettingsUser }) {
       <CardContent>
         <div className="flex items-center gap-4">
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-lg font-semibold text-primary-foreground">
-            {initials(user)}
+            {initials(user.name, user.email)}
           </span>
           <div>
             <p className="text-lg font-semibold tracking-tight">{user.name ?? 'Unnamed user'}</p>

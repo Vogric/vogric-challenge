@@ -6,6 +6,7 @@ import { ChevronRight, LogOut, Moon, Search, Sun } from 'lucide-react'
 import { useTheme } from '@/hooks/useTheme'
 import { useAuth } from '@/hooks/useAuth'
 import { useLogout } from '@/hooks/useLogout'
+import { initials } from '@/lib/utils'
 
 const SEGMENT_LABELS: Record<string, string> = {
   dashboard: 'Dashboard',
@@ -40,11 +41,6 @@ function Breadcrumb() {
       ))}
     </nav>
   )
-}
-
-function initials(email: string | undefined): string {
-  if (!email) return 'U'
-  return email.slice(0, 2).toUpperCase()
 }
 
 type NavbarProps = {
@@ -99,7 +95,7 @@ export function Navbar({ onOpenCommandPalette }: NavbarProps) {
       </button>
       <div className="flex items-center gap-2 border-l border-border pl-3">
         <div className="hidden h-8 w-8 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground sm:flex">
-          {initials(user?.email)}
+          {initials(user?.name, user?.email)}
         </div>
         <div className="hidden md:block">
           <p className="max-w-[180px] truncate text-xs font-medium text-foreground">

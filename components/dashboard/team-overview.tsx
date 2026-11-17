@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { initials } from '@/lib/utils'
 
 type TeamMember = {
   id: string
@@ -13,10 +14,6 @@ const ROLE_VARIANT: Record<string, 'primary' | 'neutral' | 'outline'> = {
   ADMIN: 'primary',
   MANAGER: 'neutral',
   VIEWER: 'outline',
-}
-
-function initials(member: TeamMember): string {
-  return (member.user.name?.slice(0, 2) ?? member.user.email.slice(0, 2)).toUpperCase()
 }
 
 export function TeamOverview({ members }: { members: TeamMember[] }) {
@@ -39,7 +36,7 @@ export function TeamOverview({ members }: { members: TeamMember[] }) {
             {members.map((member) => (
               <li key={member.id} className="flex items-center gap-3">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-[10px] font-semibold text-background">
-                  {initials(member)}
+                  {initials(member.user.name, member.user.email)}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{member.user.name ?? 'Unnamed user'}</p>
