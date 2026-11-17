@@ -1,3 +1,5 @@
+> **Historical document (pre-redesign).** This review is retained as an audit trail. The Members/Settings stubs, mobile navigation, and the UI gaps below were resolved in the Editorial Ops redesign; see the README and `docs/ui-refresh-plan.md` for the current state.
+
 # Senior Frontend Review — saas-dashboard (2026)
 
 **Scope:** `app/`, `components/`, `contexts/`, `hooks/`, `lib/`, `middleware.ts`, `prisma/seed.ts`, API routes, package config.

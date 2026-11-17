@@ -65,8 +65,9 @@ collector integration. ADR 0004.
 
 ## 11. What is missing?
 
-Sentry/OTel with a real DSN; invitations and SSO (ADR only); visual regression
-and contract tests; a larger load profile. These are explicit gaps, not hidden.
+Sentry/OTel with a real DSN; invitations and SSO (ADR only); broader visual
+regression and contract tests; a larger load profile. These are explicit gaps,
+not hidden. Login visual snapshots already run in the E2E suite.
 
 ## 12. Why should this pass a Staff bar?
 
