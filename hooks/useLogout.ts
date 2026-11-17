@@ -8,7 +8,7 @@ import { authKeys } from '@/lib/query-keys'
 export function useLogout() {
   const queryClient = useQueryClient()
   const router = useRouter()
-  const [isPending, setIsPending] = useState(false)
+  const [isPending, setIsPending] = useState<boolean>(false)
 
   const logout = useCallback(async () => {
     setIsPending(true)

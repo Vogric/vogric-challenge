@@ -23,9 +23,9 @@ type TaskListView =
   | { status: 'success'; data: TasksResponse }
 
 export function TaskListClient({ orgId, projects }: TaskListClientProps) {
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState<string>('')
   const [status, setStatus] = useState<TaskStatus | ''>('')
-  const [projectId, setProjectId] = useState('')
+  const [projectId, setProjectId] = useState<string>('')
   const debouncedSearch = useDebouncedValue(search)
 
   const filters = useMemo<TaskFilters>(

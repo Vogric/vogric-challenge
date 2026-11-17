@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { Sidebar } from '@/components/sidebar'
 import { Navbar } from '@/components/navbar'
@@ -11,7 +11,7 @@ import { useWorkspaceTransition } from '@/contexts/WorkspaceTransitionContext'
 import type { MembershipSummary } from '@/types/organizations'
 
 type DashboardShellProps = {
-  children: React.ReactNode
+  children: ReactNode
   memberships: MembershipSummary[]
   activeOrganizationId: string | null
 }
@@ -25,7 +25,7 @@ export function DashboardShell({
   const { isSwitching } = useWorkspaceTransition()
   const contentRef = useRef<HTMLDivElement>(null)
   const isFirstRender = useRef(true)
-  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false)
   const activeRole = memberships.find(
     (membership) => membership.organizationId === activeOrganizationId
   )?.role

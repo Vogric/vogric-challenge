@@ -26,8 +26,8 @@ export function OrganizationSwitcher({
   const queryClient = useQueryClient()
   const { begin, end } = useWorkspaceTransition()
   const [isPending, startTransition] = useTransition()
-  const [selectedId, setSelectedId] = useState(activeOrganizationId)
-  const [isSwitching, setIsSwitching] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(activeOrganizationId)
+  const [isSwitching, setIsSwitching] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {

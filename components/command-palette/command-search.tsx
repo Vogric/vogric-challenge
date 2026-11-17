@@ -1,8 +1,9 @@
+import type { RefObject } from 'react'
 import { Search, X } from 'lucide-react'
 
 type CommandSearchProps = {
-  inputRef: React.RefObject<HTMLInputElement | null>
-  closeButtonRef: React.RefObject<HTMLButtonElement | null>
+  inputRef: RefObject<HTMLInputElement | null>
+  closeButtonRef: RefObject<HTMLButtonElement | null>
   query: string
   activeOptionId?: string
   onChange: (value: string) => void

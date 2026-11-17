@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import React from 'react'
+import React, { type ReactNode } from 'react'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useTasks, useUpdateTaskStatus } from '@/hooks/useTasks'
@@ -41,7 +41,7 @@ const mockResponse: TasksResponse = {
 }
 
 function wrapper(queryClient: QueryClient) {
-  return function Wrapper({ children }: { children: React.ReactNode }) {
+  return function Wrapper({ children }: { children: ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
         <NotificationProvider>{children}</NotificationProvider>

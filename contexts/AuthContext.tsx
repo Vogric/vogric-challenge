@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useMemo } from 'react'
+import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { authKeys } from '@/lib/query-keys'
 import { currentUserResponseSchema, type AuthUser } from '@/lib/validations/auth'
@@ -35,7 +35,7 @@ export function AuthProvider({
   children,
   initialUser,
 }: {
-  children: React.ReactNode
+  children: ReactNode
   initialUser: AuthUser | null
 }) {
   const { data: user, isLoading } = useQuery({

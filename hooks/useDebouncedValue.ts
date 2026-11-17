@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 
 export function useDebouncedValue<T>(value: T, delay = 250): T {
-  const [debounced, setDebounced] = useState(value)
+  const [debounced, setDebounced] = useState<T>(value)
 
   useEffect(() => {
     const timeout = setTimeout(() => setDebounced(value), delay)

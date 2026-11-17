@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { filterCommands } from './command-palette/filter-commands'
 import { getCommands } from './command-palette/command-catalog'
@@ -20,8 +20,8 @@ export function CommandPalette({ open, onClose, canViewAudit }: CommandPalettePr
   const inputRef = useRef<HTMLInputElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const previousFocus = useRef<HTMLElement | null>(null)
-  const [query, setQuery] = useState('')
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [query, setQuery] = useState<string>('')
+  const [activeIndex, setActiveIndex] = useState<number>(0)
 
   const commands = useMemo(() => getCommands(canViewAudit), [canViewAudit])
   const filtered = useMemo(() => filterCommands(commands, query), [commands, query])
@@ -56,7 +56,7 @@ export function CommandPalette({ open, onClose, canViewAudit }: CommandPalettePr
     router.push(command.href)
   }
 
-  function handleKeyDown(event: React.KeyboardEvent) {
+  function handleKeyDown(event: KeyboardEvent) {
     if (event.key === 'Escape') {
       event.preventDefault()
       onClose()

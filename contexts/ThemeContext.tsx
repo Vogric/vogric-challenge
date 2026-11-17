@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useMemo, useState, useEffect } from 'react'
+import { createContext, useContext, useMemo, useState, useEffect, type ReactNode } from 'react'
 import { THEME_STORAGE_KEY, type Theme } from '@/contexts/theme'
 
 type ThemeContextValue = {
@@ -17,7 +17,7 @@ function readStoredTheme(): Theme {
   return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system'
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(readStoredTheme)
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
 
