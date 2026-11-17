@@ -34,7 +34,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      testIgnore: '**/visual.spec.ts',
+      testIgnore: ['**/visual.spec.ts', '**/cross-browser.spec.ts'],
       use: { ...devices['Desktop Chrome'] },
     },
     {
@@ -42,6 +42,16 @@ export default defineConfig({
       testMatch: '**/visual.spec.ts',
       dependencies: ['chromium'],
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'webkit-smoke',
+      testMatch: '**/cross-browser.spec.ts',
+      use: { ...devices['Desktop Safari'] },
+    },
+    {
+      name: 'firefox-smoke',
+      testMatch: '**/cross-browser.spec.ts',
+      use: { ...devices['Desktop Firefox'] },
     },
   ],
 })
