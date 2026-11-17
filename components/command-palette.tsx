@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowDown, ArrowUp, CornerDownLeft, Search, X } from 'lucide-react'
 import { filterCommands, getCommands, type Command } from './command-palette/commands'
+import { CommandFooter } from './command-palette/command-footer'
+import { CommandSearch } from './command-palette/command-search'
+import { CommandList } from './command-palette/command-list'
 
 type CommandPaletteProps = {
   open: boolean
@@ -111,89 +113,23 @@ export function CommandPalette({ open, onClose, canViewAudit }: CommandPalettePr
           Command palette
         </h2>
 
-        <div className="command-search-row flex items-center gap-3 border-b border-border px-4">
-          <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search pages and actions..."
-            aria-label="Search commands"
-            aria-controls="command-list"
-            aria-activedescendant={activeOptionId}
-            className="command-search-input h-14 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-          />
-          <button
-            ref={closeButtonRef}
-            type="button"
-            onClick={onClose}
-            aria-label="Close command palette"
-            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
+        <CommandSearch
+          inputRef={inputRef}
+          closeButtonRef={closeButtonRef}
+          query={query}
+          activeOptionId={activeOptionId}
+          onChange={setQuery}
+          onClose={onClose}
+        />
 
-        <div className="max-h-[min(420px,55vh)] overflow-y-auto p-2">
-          <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            Navigate
-          </p>
-          {filtered.length === 0 ? (
-            <p className="px-3 py-8 text-center text-sm text-muted-foreground">
-              No matching commands.
-            </p>
-          ) : (
-            <div id="command-list" role="listbox" aria-label="Commands">
-              {filtered.map((command, index) => (
-                <div
-                  key={command.id}
-                  id={`command-option-${command.id}`}
-                  role="option"
-                  aria-selected={index === activeIndex}
-                  onMouseEnter={() => setActiveIndex(index)}
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => run(command)}
-                  className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
-                    index === activeIndex ? 'bg-muted text-foreground' : 'text-muted-foreground'
-                  }`}
-                >
-                  <span
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg border ${
-                      index === activeIndex
-                        ? 'border-border bg-card text-foreground'
-                        : 'border-transparent bg-muted/60'
-                    }`}
-                  >
-                    <command.icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium text-foreground">{command.label}</span>
-                    <span className={`block truncate text-xs ${index === activeIndex ? 'text-foreground/70' : 'text-muted-foreground'}`}>{command.description}</span>
-                  </span>
-                  {index === activeIndex && (
-                    <CornerDownLeft className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <CommandList
+          commands={filtered}
+          activeIndex={activeIndex}
+          onActiveChange={setActiveIndex}
+          onSelect={run}
+        />
 
-        <div className="flex items-center justify-between gap-3 border-t border-border bg-muted/30 px-4 py-2.5 text-[10px] text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5">
-            <ArrowUp className="h-3 w-3" aria-hidden="true" />
-            <ArrowDown className="h-3 w-3" aria-hidden="true" />
-            navigate
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <CornerDownLeft className="h-3 w-3" aria-hidden="true" />
-            open
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="rounded border border-border bg-card px-1 py-0.5 font-mono">esc</span>
-            close
-          </span>
-        </div>
+        <CommandFooter />
       </div>
     </div>
   )

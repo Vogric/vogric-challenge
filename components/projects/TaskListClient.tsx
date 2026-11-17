@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useTasks, useUpdateTaskStatus } from '@/hooks/useTasks'
+import { useTaskPagination } from '@/hooks/useTaskPagination'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { TaskTable } from '@/components/projects/TaskTable'
 import { TaskPagination } from '@/components/projects/TaskPagination'
@@ -21,13 +22,6 @@ type TaskListView =
   | { status: 'error' }
   | { status: 'success'; data: TasksResponse }
 
-type PaginationState = {
-  signature: string
-  cursor: string | null
-  history: Array<string | null>
-  page: number
-}
-
 export function TaskListClient({ orgId, projects }: TaskListClientProps) {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<TaskStatus | ''>('')
@@ -46,20 +40,7 @@ export function TaskListClient({ orgId, projects }: TaskListClientProps) {
     () => JSON.stringify({ q: debouncedSearch, status, projectId }),
     [debouncedSearch, status, projectId]
   )
-  const [pagination, setPagination] = useState<PaginationState>(() => ({
-    signature: filterSignature,
-    cursor: null,
-    history: [],
-    page: 1,
-  }))
-
-  // Derive the visible cursor from the current filters instead of resetting it
-  // in an effect. This avoids issuing one request with the old cursor under the
-  // new filters, followed by a second reset request.
-  const activePagination: PaginationState =
-    pagination.signature === filterSignature
-      ? pagination
-      : { signature: filterSignature, cursor: null, history: [], page: 1 }
+  const { activePagination, goToNextPage, goToPreviousPage } = useTaskPagination(filterSignature)
 
   const { data, isLoading, isError, isFetching } = useTasks(
     orgId,
@@ -81,26 +62,6 @@ export function TaskListClient({ orgId, projects }: TaskListClientProps) {
   const totalPages = pageInfo ? Math.max(1, pageInfo.totalPages) : 1
   const hasNextPage = Boolean(pageInfo?.nextCursor)
 
-  function goToNextPage() {
-    if (!pageInfo?.nextCursor) return
-    setPagination({
-      signature: filterSignature,
-      cursor: pageInfo.nextCursor,
-      history: [...activePagination.history, activePagination.cursor],
-      page: activePagination.page + 1,
-    })
-  }
-
-  function goToPreviousPage() {
-    if (activePagination.history.length === 0) return
-    const previousCursor = activePagination.history[activePagination.history.length - 1]
-    setPagination({
-      signature: filterSignature,
-      cursor: previousCursor,
-      history: activePagination.history.slice(0, -1),
-      page: Math.max(1, activePagination.page - 1),
-    })
-  }
 
   function clearFilters() {
     setSearch('')
@@ -152,7 +113,7 @@ export function TaskListClient({ orgId, projects }: TaskListClientProps) {
             hasPreviousPage={activePagination.history.length > 0}
             hasNextPage={hasNextPage}
             onPrevious={goToPreviousPage}
-            onNext={goToNextPage}
+            onNext={() => goToNextPage(pageInfo?.nextCursor ?? null)}
           />
 
           {isPending && (

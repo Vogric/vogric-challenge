@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
-const MAX_LINES = 220
+const MAX_LINES = 150
 const ROOTS = ['app', 'components', 'contexts', 'hooks', 'lib', 'types']
 
 function sourceFiles(directory) {

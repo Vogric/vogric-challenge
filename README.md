@@ -143,7 +143,7 @@ Generate a session secret with `openssl rand -base64 48`.
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint with `--max-warnings=0` |
 | `npm run check:pages` | Fails if any `page.tsx` exceeds 100 lines |
-| `npm run check:source` | Fails if any non-page source file exceeds 220 lines |
+| `npm run check:source` | Fails if any non-page source file exceeds 150 lines |
 | `npm run seed` | Idempotent fixtures: 3 organizations, 2 users, 15 projects, 60 tasks |
 | `npm run perf:budget` | Authenticated LCP/CLS/TTFB and per-route JS-transfer budget against a running build |
 | `npm run lighthouse:budget` | Lighthouse performance/accessibility/best-practices/SEO gate for login |
