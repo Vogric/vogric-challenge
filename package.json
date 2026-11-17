@@ -21,7 +21,8 @@
     "screenshots": "node scripts/capture-screenshots.mjs",
     "lighthouse:budget": "node scripts/lighthouse-budget.mjs",
     "check:pages": "node scripts/check-page-size.mjs",
-    "check:source": "node scripts/check-source-size.mjs"
+    "check:source": "node scripts/check-source-size.mjs",
+    "check:tests": "node scripts/check-tests.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.11.3",
@@ -51,6 +52,8 @@
     "@types/node": "^20.0.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "@vitest/coverage-v8": "^1.6.1",
     "autoprefixer": "^10.0.0",
     "chrome-launcher": "^1.2.3",

@@ -181,7 +181,7 @@ async function main() {
       await db.task.create({
         data: {
           title,
-          status: statuses[i % statuses.length],
+          status: statuses[i % statuses.length] ?? 'todo',
           projectId: project.id,
           assigneeId: i % 3 === 0 ? demoUser.id : null,
         },
@@ -215,7 +215,7 @@ async function main() {
     await db.task.create({
       data: {
         title,
-        status: statuses[i % statuses.length],
+        status: statuses[i % statuses.length] ?? 'todo',
         projectId: project.id,
         assigneeId: i % 5 === 0 ? demoUser.id : null,
       },
@@ -234,6 +234,6 @@ main()
     console.error('[error] Error during seed:', e)
     process.exit(1)
   })
-  .finally(async () => {
-    await db.$disconnect()
+  .finally(() => {
+    void db.$disconnect()
   })

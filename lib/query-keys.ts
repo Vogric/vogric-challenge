@@ -13,6 +13,6 @@ export const taskKeys = {
   cursor: (
     orgId: string | null,
     cursor: string | null,
-    filters: { q?: string; status?: string; projectId?: string } = {}
+    filters: { q?: string | undefined; status?: string | undefined; projectId?: string | undefined } = {}
   ) => ['tasks', orgId, 'cursor', cursor, filters.q ?? '', filters.status ?? '', filters.projectId ?? ''] as const,
 }

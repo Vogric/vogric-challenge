@@ -5,7 +5,7 @@ type CommandSearchProps = {
   inputRef: RefObject<HTMLInputElement | null>
   closeButtonRef: RefObject<HTMLButtonElement | null>
   query: string
-  activeOptionId?: string
+  activeOptionId?: string | undefined
   onChange: (value: string) => void
   onClose: () => void
 }

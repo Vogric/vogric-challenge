@@ -81,7 +81,9 @@ export function LoginForm() {
               {error}
             </div>
           )}
-          <form id="login-form" className="space-y-4" onSubmit={handleSubmit} noValidate aria-busy={isSubmitting}>
+          <form id="login-form" className="space-y-4" onSubmit={(event) => {
+              void handleSubmit(event)
+            }} noValidate aria-busy={isSubmitting}>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input

@@ -107,7 +107,9 @@ export function Navbar({ onOpenCommandPalette }: NavbarProps) {
         </div>
         <button
           type="button"
-          onClick={logout}
+          onClick={() => {
+            void logout()
+          }}
           disabled={isLoggingOut}
           aria-busy={isLoggingOut}
           aria-label={isLoggingOut ? 'Signing out...' : 'Sign out'}

@@ -11,7 +11,7 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 ![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)
 ![React](https://img.shields.io/badge/React-19-61dafb.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)
-![Tests](https://img.shields.io/badge/Tests-133%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/Tests-136%20passing-brightgreen.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
 
@@ -20,8 +20,8 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 | Signal | Value |
 |---|---|
 | Live deployment | <https://vogric-challenge.vercel.app> |
-| Automated tests | **133** (103 unit + 30 E2E) |
-| Coverage gate | **93.51% statements** · 81.17% branches · 95.91% functions |
+| Automated tests | **136** (106 unit + 30 E2E) |
+| Coverage gate | **93.59% statements** · 80.33% branches · 96.00% functions |
 | Tasks p95 (warm) | **189 ms** at 20 VUs · 0.00% errors |
 | Middleware | **33.8 kB** |
 | Lighthouse (login) | **99 performance · 100 accessibility · 100 SEO** |
@@ -144,6 +144,7 @@ Generate a session secret with `openssl rand -base64 48`.
 | `npm run lint` | ESLint with `--max-warnings=0` |
 | `npm run check:pages` | Fails if any `page.tsx` exceeds 100 lines |
 | `npm run check:source` | Fails if any non-page source file exceeds 150 lines |
+| `npm run check:tests` | Fails if `.only` is committed in a test |
 | `npm run seed` | Idempotent fixtures: 3 organizations, 2 users, 15 projects, 60 tasks |
 | `npm run perf:budget` | Authenticated LCP/CLS/TTFB and per-route JS-transfer budget against a running build |
 | `npm run lighthouse:budget` | Lighthouse performance/accessibility/best-practices/SEO gate for login |
@@ -264,8 +265,8 @@ Everything below was executed on the commit in this branch.
 |---|---|---|
 | Types | `npm run typecheck` | 0 errors |
 | Lint | `npm run lint` | 0 errors, 0 warnings (`--max-warnings=0`) |
-| Unit / integration | `npm test` | **103 passed** in 17 files |
-| Coverage | `npm run test:coverage` | **93.51% statements · 81.17% branches · 95.91% functions** (gate: 80/70/80) |
+| Unit / integration | `npm test` | **106 passed** in 18 files |
+| Coverage | `npm run test:coverage` | **93.59% statements · 80.33% branches · 96.00% functions** (gate: 80/70/80) |
 | End-to-end | `npm run test:e2e` | **21 passed** |
 | Production build | `npm run build` | OK · First Load JS 103 kB · middleware 33.8 kB |
 

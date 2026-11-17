@@ -27,7 +27,9 @@ export async function recordAuditEvent(
       action: input.action,
       entityType: input.entityType,
       entityId: input.entityId ?? null,
-      metadata: input.metadata as Prisma.InputJsonValue | undefined,
+      ...(input.metadata !== undefined
+        ? { metadata: input.metadata as Prisma.InputJsonValue }
+        : {}),
     },
   })
 }

@@ -1,5 +1,6 @@
 import type { Instrumentation } from 'next'
 import { logError } from '@/lib/logger/log-error'
+import { validateEnv } from '@/lib/env'
 
 /**
  * Next calls `register` once per server runtime, before the first request.
@@ -11,16 +12,10 @@ import { logError } from '@/lib/logger/log-error'
 export async function register(): Promise<void> {
   if (process.env.NEXT_RUNTIME === 'edge') return
 
-  const missing: string[] = []
-  if (!process.env.JWT_SECRET) missing.push('JWT_SECRET')
-  if (!process.env.DATABASE_URL) missing.push('DATABASE_URL')
-
-  if (missing.length > 0) {
-    // Fail fast: a server that cannot authenticate or reach the database should
-    // never accept a request. `lib/jwt` already refuses to sign without a
-    // secret; this surfaces the whole list at once, at boot.
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
-  }
+  // Fail fast on missing or malformed configuration. `lib/jwt` has its own
+  // length check at import time; this validates the complete runtime contract
+  // (including optional Upstash settings) before the first request.
+  validateEnv()
 }
 
 /**

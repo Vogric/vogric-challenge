@@ -90,7 +90,9 @@ export function Sidebar({ memberships, activeOrganizationId }: SidebarProps) {
           </div>
           <button
             type="button"
-            onClick={logout}
+            onClick={() => {
+              void logout()
+            }}
             disabled={isLoggingOut}
             aria-busy={isLoggingOut}
             aria-label="Sign out of your session"

@@ -44,10 +44,9 @@ async function fetchTasks(
   if (filters.status) params.set('status', filters.status)
   if (filters.projectId) params.set('projectId', filters.projectId)
 
-  const res = await fetch(`/api/dashboard/tasks?${params.toString()}`, {
-    cache: 'no-store',
-    signal,
-  })
+  const init: RequestInit = { cache: 'no-store' }
+  if (signal) init.signal = signal
+  const res = await fetch(`/api/dashboard/tasks?${params.toString()}`, init)
   if (!res.ok) throw new Error('Failed to fetch tasks')
 
   // Throwing on a malformed payload is deliberate: the previous code fell back
@@ -117,7 +116,7 @@ export function useUpdateTaskStatus(orgId: string) {
       addNotification({ type: 'error', message: 'Failed to update task. Reverting changes.' })
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey })
+      void queryClient.invalidateQueries({ queryKey })
     },
   })
 }
