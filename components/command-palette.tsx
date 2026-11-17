@@ -2,72 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  ArrowDown,
-  ArrowUp,
-  CornerDownLeft,
-  FolderKanban,
-  History,
-  LayoutDashboard,
-  Search,
-  Settings,
-  Users,
-  X,
-} from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
-
-type Command = {
-  id: string
-  label: string
-  description: string
-  href: string
-  icon: LucideIcon
-  keywords: string
-}
-
-const BASE_COMMANDS: Command[] = [
-  {
-    id: 'dashboard',
-    label: 'Dashboard',
-    description: 'Workspace overview and operational metrics',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-    keywords: 'home overview metrics kpi',
-  },
-  {
-    id: 'projects',
-    label: 'Projects',
-    description: 'Browse and filter every task',
-    href: '/dashboard/projects',
-    icon: FolderKanban,
-    keywords: 'tasks work items projects filters',
-  },
-  {
-    id: 'team',
-    label: 'Team',
-    description: 'Members, roles, and access',
-    href: '/dashboard/members',
-    icon: Users,
-    keywords: 'members people roles permissions',
-  },
-  {
-    id: 'settings',
-    label: 'Settings',
-    description: 'Account, workspace, and security',
-    href: '/dashboard/settings',
-    icon: Settings,
-    keywords: 'profile organization security account',
-  },
-]
-
-const AUDIT_COMMAND: Command = {
-  id: 'audit',
-  label: 'Audit log',
-  description: 'Tenant-scoped change history',
-  href: '/dashboard/audit',
-  icon: History,
-  keywords: 'events history security activity',
-}
+import { ArrowDown, ArrowUp, CornerDownLeft, Search, X } from 'lucide-react'
+import { filterCommands, getCommands, type Command } from './command-palette/commands'
 
 type CommandPaletteProps = {
   open: boolean
@@ -83,17 +19,8 @@ export function CommandPalette({ open, onClose, canViewAudit }: CommandPalettePr
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(0)
 
-  const commands = useMemo(
-    () => (canViewAudit ? [...BASE_COMMANDS, AUDIT_COMMAND] : BASE_COMMANDS),
-    [canViewAudit]
-  )
-  const filtered = useMemo(() => {
-    const normalized = query.trim().toLowerCase()
-    if (!normalized) return commands
-    return commands.filter((command) =>
-      `${command.label} ${command.description} ${command.keywords}`.toLowerCase().includes(normalized)
-    )
-  }, [commands, query])
+  const commands = useMemo(() => getCommands(canViewAudit), [canViewAudit])
+  const filtered = useMemo(() => filterCommands(commands, query), [commands, query])
 
   useEffect(() => {
     if (!open) return

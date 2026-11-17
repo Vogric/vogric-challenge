@@ -60,6 +60,9 @@ jobs:
       - name: Page size budget
         run: npm run check:pages
 
+      - name: Source size budget
+        run: npm run check:source
+
       - name: Unit tests
         run: npm test
 
