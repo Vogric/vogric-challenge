@@ -1,13 +1,9 @@
 import { z } from 'zod'
 
 /**
- * Single source of truth for the task contract, shared by the API route, the
- * server data layer and the client.
- *
- * The input schemas live next to their routes; this one describes the *output*.
- * Parsing the response on the client is the point: before, a shape change in the
- * API silently degraded to "0 tasks" because the client fell back to a default
- * pagination object.
+ * Single source of truth for the task output contract, shared by the API, data
+ * layer, and client. Parsing makes contract drift fail loudly instead of
+ * degrading to an empty page.
  */
 export const taskStatusSchema = z.enum(['todo', 'in_progress', 'done'])
 
