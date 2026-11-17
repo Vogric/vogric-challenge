@@ -65,19 +65,38 @@ under the 300 ms threshold. This is why the endpoints use `preferredRegion =
 'fra1'`.
 
 
-## Authenticated performance budget (2026-11-16)
+## Authenticated performance budget (2026-11-17)
 
-Measured with `npm run perf:budget` against a local production build, from login
-through the dashboard:
+`npm run perf:budget` measures every authenticated route against a local
+production build. Each route has its own TTFB, LCP, CLS, and JavaScript-transfer
+budget (JS < 350 kB):
 
 ```text
-PASS  TTFB:        5 ms        (budget 800 ms)
-PASS  LCP:        44 ms        (budget 2500 ms)
-PASS  CLS:         0           (budget 0.1)
-PASS  JS transfer: 197.0 kB    (budget 600 kB)
-INFO  authenticated navigation: 2277 ms · 38 requests · 362.7 kB total
+/dashboard          TTFB 375 ms · LCP 428 ms · CLS 0       · JS 186.0 kB
+/dashboard/projects TTFB 314 ms · LCP 664 ms · CLS 0       · JS 191.4 kB
+/dashboard/members  TTFB 353 ms · LCP 696 ms · CLS 0.0072  · JS 184.9 kB
+/dashboard/audit    TTFB 162 ms · LCP 512 ms · CLS 0.0115  · JS 182.9 kB
+/dashboard/settings TTFB 186 ms · LCP 224 ms · CLS 0       · JS 182.9 kB
 ```
 
-`authenticatedNavigationMs` includes the login POST, redirect, dashboard data
-fetch, and a 1.5 s settle window; it is not LCP. The budget is deliberately
-generous enough for CI variance while still catching a JavaScript regression.
+The first route pays the shared shell and fonts; later routes reuse cached
+chunks. Byte accounting falls back to `encodedBodySize` when Chromium reports a
+cache hit as zero transfer size, so a warm cache cannot make the budget blindly
+pass.
+
+## Lighthouse
+
+`npm run lighthouse:budget` runs Lighthouse against the public login page, the
+one route that does not require an authenticated Playwright session:
+
+```text
+Performance      99 / 100
+Accessibility   100 / 100
+Best practices   96 / 100
+SEO             100 / 100
+FCP 758 ms · LCP 758 ms · TBT 30 ms
+```
+
+The authenticated dashboard is covered by the route budget above; Lighthouse
+does not know the demo session and is intentionally not pointed at protected
+pages.

@@ -48,6 +48,7 @@ and platform engineering, not a commercial product.
   critical hooks.
 - Warm p95 189 ms for tasks at 20 VUs, 0% errors; cold-start baseline p95 310 ms.
 - Middleware 33.8 kB.
+- Lighthouse login: 99 performance, 100 accessibility, 96 best practices, 100 SEO.
 - Cross-tenant mutation returns 403; last-admin demotion is blocked in a
   serializable transaction.
 - Audit events for task status and membership role changes.

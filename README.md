@@ -24,6 +24,7 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 | Coverage gate | **93.43% statements** · 81.64% branches · 95.74% functions |
 | Tasks p95 (warm) | **189 ms** at 20 VUs · 0.00% errors |
 | Middleware | **33.8 kB** |
+| Lighthouse (login) | **99 performance · 100 accessibility · 100 SEO** |
 | Stack | Next.js 15 · React 19 · Prisma/Neon · TanStack Query |
 | Deploy | Vercel, production migrations in build |
 
@@ -142,7 +143,8 @@ Generate a session secret with `openssl rand -base64 48`.
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint with `--max-warnings=0` |
 | `npm run seed` | Idempotent fixtures: 3 organizations, 2 users, 15 projects, 60 tasks |
-| `npm run perf:budget` | Authenticated LCP/CLS/TTFB and JS-transfer budget against a running build |
+| `npm run perf:budget` | Authenticated LCP/CLS/TTFB and per-route JS-transfer budget against a running build |
+| `npm run lighthouse:budget` | Lighthouse performance/accessibility/best-practices/SEO gate for login |
 | `npm run screenshots` | Refresh the README/demo screenshots in `docs/screenshots/` |
 
 ---

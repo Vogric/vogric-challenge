@@ -18,7 +18,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:coverage": "vitest run --coverage",
     "perf:budget": "node scripts/perf-budget.mjs",
-    "screenshots": "node scripts/capture-screenshots.mjs"
+    "screenshots": "node scripts/capture-screenshots.mjs",
+    "lighthouse:budget": "node scripts/lighthouse-budget.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.11.3",
@@ -50,9 +51,11 @@
     "@types/react-dom": "^19.3.0",
     "@vitest/coverage-v8": "^1.6.1",
     "autoprefixer": "^10.0.0",
+    "chrome-launcher": "^1.2.3",
     "eslint": "^8.0.0",
     "eslint-config-next": "^15.5.29",
     "jsdom": "^24.0.0",
+    "lighthouse": "^13.6.0",
     "playwright": "^1.40.0",
     "postcss": "^8.0.0",
     "prisma": "^5.7.0",

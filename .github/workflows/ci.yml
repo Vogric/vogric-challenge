@@ -84,3 +84,4 @@ jobs:
             sleep 1
           done
           PERF_BASE_URL=http://localhost:3101 npm run perf:budget
+          LIGHTHOUSE_BASE_URL=http://localhost:3101 npm run lighthouse:budget

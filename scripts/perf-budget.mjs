@@ -1,11 +1,18 @@
 import { chromium } from 'playwright'
 
 const baseUrl = process.env.PERF_BASE_URL || 'http://localhost:3000'
+const routes = [
+  '/dashboard',
+  '/dashboard/projects',
+  '/dashboard/members',
+  '/dashboard/audit',
+  '/dashboard/settings',
+]
 const budgets = {
   ttfbMs: 800,
   lcpMs: 2500,
   cls: 0.1,
-  jsTransferBytes: 600 * 1024,
+  jsTransferBytes: 350 * 1024,
 }
 
 const browser = await chromium.launch()
@@ -27,59 +34,70 @@ await page.addInitScript(() => {
   }).observe({ type: 'layout-shift', buffered: true })
 })
 
+async function measure(route) {
+  const started = Date.now()
+  await page.goto(`${baseUrl}${route}`, { waitUntil: 'networkidle' })
+  await page.waitForTimeout(500)
+
+  const metrics = await page.evaluate(() => {
+    const navigation = performance.getEntriesByType('navigation')[0]
+    const resources = performance.getEntriesByType('resource')
+    const js = resources.filter((entry) => entry.initiatorType === 'script')
+    const bytes = (entry) => entry.transferSize || entry.encodedBodySize || 0
+    const transfer = resources.reduce((total, entry) => total + bytes(entry), 0)
+    const jsTransfer = js.reduce((total, entry) => total + bytes(entry), 0)
+
+    return {
+      ttfbMs: navigation ? Math.round(navigation.responseStart - navigation.requestStart) : null,
+      lcpMs: Math.round(window.__perf?.lcp ?? 0),
+      cls: Number((window.__perf?.cls ?? 0).toFixed(4)),
+      requests: resources.length + 1,
+      transferBytes: transfer,
+      jsTransferBytes: jsTransfer,
+      jsRequests: js.length,
+    }
+  })
+
+  return { route, wallMs: Date.now() - started, ...metrics }
+}
+
 await page.goto(`${baseUrl}/auth/login`, { waitUntil: 'networkidle' })
 await page.fill('input[type="email"]', 'demo@example.com')
 await page.fill('input[type="password"]', 'password123')
-
-const started = Date.now()
 await page.locator('#login-form button').first().click()
 await page.waitForURL('**/dashboard', { timeout: 30_000 })
 await page.waitForLoadState('networkidle')
-await page.waitForTimeout(1_500)
-const wallMs = Date.now() - started
 
-const metrics = await page.evaluate(() => {
-  const navigation = performance.getEntriesByType('navigation')[0]
-  const resources = performance.getEntriesByType('resource')
-  const js = resources.filter((entry) => entry.initiatorType === 'script')
-  const transfer = resources.reduce((total, entry) => total + (entry.transferSize || 0), 0)
-  const jsTransfer = js.reduce((total, entry) => total + (entry.transferSize || 0), 0)
-
-  return {
-    ttfbMs: navigation ? Math.round(navigation.responseStart - navigation.requestStart) : null,
-    domContentLoadedMs: navigation ? Math.round(navigation.domContentLoadedEventEnd) : null,
-    loadMs: navigation ? Math.round(navigation.loadEventEnd) : null,
-    lcpMs: Math.round(window.__perf?.lcp ?? 0),
-    cls: Number((window.__perf?.cls ?? 0).toFixed(4)),
-    requests: resources.length + 1,
-    transferBytes: transfer,
-    jsTransferBytes: jsTransfer,
-    jsRequests: js.length,
-  }
-})
-
+const results = []
+for (const route of routes) {
+  results.push(await measure(route))
+}
 await browser.close()
 
-const results = { ...metrics, authenticatedNavigationMs: wallMs }
-const checks = [
-  ['TTFB', results.ttfbMs, budgets.ttfbMs, 'ms'],
-  ['LCP', results.lcpMs, budgets.lcpMs, 'ms'],
-  ['CLS', results.cls, budgets.cls, ''],
-  ['JS transfer', results.jsTransferBytes, budgets.jsTransferBytes, 'bytes'],
-]
+const failures = []
+console.log(`Perf budget · ${baseUrl}`)
+for (const result of results) {
+  const checks = [
+    ['TTFB', result.ttfbMs, budgets.ttfbMs, 'ms'],
+    ['LCP', result.lcpMs, budgets.lcpMs, 'ms'],
+    ['CLS', result.cls, budgets.cls, ''],
+    ['JS transfer', result.jsTransferBytes, budgets.jsTransferBytes, 'bytes'],
+  ]
 
-console.log(`Perf budget · ${baseUrl}/dashboard`)
-for (const [label, actual, budget, unit] of checks) {
-  const pass = actual !== null && actual <= budget
-  const display = unit === 'bytes' ? `${(actual / 1024).toFixed(1)} kB` : `${actual}${unit}`
-  const limit = unit === 'bytes' ? `${(budget / 1024).toFixed(0)} kB` : `${budget}${unit}`
-  console.log(`${pass ? 'PASS' : 'FAIL'}  ${label}: ${display} (budget ${limit})`)
+  for (const [label, actual, budget, unit] of checks) {
+    const pass = actual !== null && actual <= budget
+    if (!pass) failures.push(`${result.route} ${label}`)
+    const display = unit === 'bytes' ? `${(actual / 1024).toFixed(1)} kB` : `${actual}${unit}`
+    const limit = unit === 'bytes' ? `${(budget / 1024).toFixed(0)} kB` : `${budget}${unit}`
+    console.log(`${pass ? 'PASS' : 'FAIL'}  ${result.route} ${label}: ${display} (budget ${limit})`)
+  }
+  console.log(
+    `INFO  ${result.route}: ${result.wallMs} ms · ${result.requests} requests · ` +
+      `${(result.transferBytes / 1024).toFixed(1)} kB total · ${result.jsRequests} JS requests`
+  )
 }
-console.log(
-  `INFO  authenticated navigation: ${results.authenticatedNavigationMs} ms · ` +
-    `${results.requests} requests · ${(results.transferBytes / 1024).toFixed(1)} kB total · ` +
-    `${results.jsRequests} JS requests`
-)
 
-const failed = checks.filter(([, actual, budget]) => actual === null || actual > budget)
-if (failed.length > 0) process.exitCode = 1
+if (failures.length > 0) {
+  console.error(`Budget failures: ${failures.join(', ')}`)
+  process.exitCode = 1
+}
