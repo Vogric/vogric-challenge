@@ -4,23 +4,11 @@ import { readSessionToken } from '@/lib/cookies'
 import { enforceLoginRateLimit } from '@/lib/login-guard'
 
 /**
- * Edge middleware runs before every matched request and before the cache, so
- * everything here is a cost paid by the whole product. It used to import `jose`
- * and verify the JWT, which pushed the bundle past 40 kB and made every request
- * pay for a signature check whose result was then thrown away: pages and route
- * handlers verify the session again against the database before they read or
- * write anything.
- *
- * It is now limited to what only the middleware can do:
- *   1. bounce anonymous traffic away from /dashboard before it reaches a Server
- *      Component (a UX shortcut, not a security boundary),
- *   2. enforce the login rate limit,
- *   3. mint the CSP nonce and propagate a request id.
- *
- * The "already signed in, go to /dashboard" redirect moved into the login page
- * itself. Doing it here with a cookie-presence check creates a loop for expired
- * sessions (login -> dashboard -> login); doing it here with a real verification
- * is exactly the cost this file exists to avoid. See ADR 0006.
+ * Edge middleware is on the hot path for every request. It only gates anonymous
+ * `/dashboard` traffic before a Server Component runs, enforces the login rate
+ * limit, and mints the CSP nonce/request id. Session authorization is re-derived
+ * in Node. The authenticated-user redirect lives in the login page to avoid
+ * expired-cookie loops; see ADR 0006.
  */
 function buildCsp(nonce: string): string {
   return [

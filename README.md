@@ -4,14 +4,14 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 
 **Live demo:** <https://vogric-challenge.vercel.app> · sign in with `demo@example.com` / `password123`
 
-[![27-second product demo](./demo/saas-dashboard-demo-poster.png)](./demo/saas-dashboard-demo.mp4)
+[![Product demo](./demo/saas-dashboard-demo-poster.png)](./demo/saas-dashboard-demo.mp4)
 
-**27-second product demo:** [MP4](./demo/saas-dashboard-demo.mp4) · [demo script](./DEMO.md) · [architecture](./docs/architecture.md)
+**Product demo:** [MP4](./demo/saas-dashboard-demo.mp4) · [demo script](./DEMO.md) · [architecture](./docs/architecture.md)
 
 ![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)
 ![React](https://img.shields.io/badge/React-19-61dafb.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)
-![Tests](https://img.shields.io/badge/Tests-106%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/Tests-143%20passing-brightgreen.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
 
@@ -20,10 +20,11 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 | Signal | Value |
 |---|---|
 | Live deployment | <https://vogric-challenge.vercel.app> |
-| Automated tests | **106** (89 unit + 17 E2E) |
-| Coverage gate | **92.32% statements** · 80.71% branches · 95.55% functions |
-| Tasks p95 (warm) | **180 ms** at 10 VUs · 0.00% errors |
+| Automated tests | **143** (113 unit + 30 E2E) |
+| Coverage gate | **94.00% statements** · 81.77% branches · 96.29% functions |
+| Tasks p95 (warm) | **189 ms** at 20 VUs · 0.00% errors |
 | Middleware | **33.8 kB** |
+| Lighthouse (login) | **99 performance · 100 accessibility · 100 SEO** |
 | Stack | Next.js 15 · React 19 · Prisma/Neon · TanStack Query |
 | Deploy | Vercel, production migrations in build |
 
@@ -33,11 +34,26 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 - [Architecture diagrams](./docs/architecture.md)
 - [One-page case study](./docs/case-study.md)
 - [2-minute video script](./docs/video-script.md)
-- [Interview Q&A](./docs/interview-qa.md)
-- [UI refresh plan](./docs/ui-refresh-plan.md)
+- [Interview Q&A by profile](./docs/interview-qa.md)
+- [Frontend conventions](./docs/frontend-conventions.md)
+- [Scaling notes](./docs/scaling-notes.md)
+- [Screenshots](./docs/screenshots)
 - [ADRs and runbook](./docs/adr/README.md)
 
 ---
+
+## Product screens
+
+| | |
+|---|---|
+| ![Dashboard](./docs/screenshots/02-dashboard.png) | ![Tasks](./docs/screenshots/04-projects.png) |
+| ![Command palette](./docs/screenshots/03-command-palette.png) | ![Audit timeline](./docs/screenshots/05-audit.png) |
+| ![Team](./docs/screenshots/06-team.png) | ![Settings](./docs/screenshots/07-settings.png) |
+
+Mobile keeps the same information architecture through a fixed tab bar and the
+same ⌘K palette:
+
+![Mobile dashboard](./docs/screenshots/08-mobile-dashboard.png)
 
 ## Who should read what
 
@@ -58,13 +74,13 @@ Every number in this document was produced by running the command next to it. Wh
 
 A dashboard where a user belongs to several organizations with a different role in each, and sees only the data of the organization they are currently working in.
 
-Five screens:
+Six screens:
 
 | Screen | Route | What it is |
 |---|---|---|
 | Login | `/auth/login` | Credential sign-in, accessible form, server-side session |
 | Overview | `/dashboard` | KPI counters for the active organization |
-| Tasks | `/dashboard/projects` | Cursor-paginated task table with inline status editing. Reached from the **Projects** tab above the content, or by URL |
+| Tasks | `/dashboard/projects` | Cursor-paginated task table with search, status/project filters, and inline status editing |
 | Team | `/dashboard/members` | Members and role management (admins only) |
 | Audit | `/dashboard/audit` | Tenant-scoped audit trail (admins only) |
 | Settings | `/dashboard/settings` | Read-only account and workspace summary |
@@ -76,16 +92,16 @@ Five screens:
 | `demo@example.com` | `password123` | ADMIN | MANAGER | VIEWER |
 | `viewer@example.com` | `password123` | — | — | VIEWER |
 
-Signing in as `demo`, switching organization in the sidebar, and opening **Tasks** is the fastest way to see the tenancy model in action: the same user gets different permissions in each organization.
+Signing in as `demo`, switching organization in the sidebar, and opening **Projects** is the fastest way to see the tenancy model in action: the same user gets different permissions in each organization.
 
 ## 60-second tour
 
 1. Sign in as `demo@example.com`.
 2. The overview shows counters for **Acme Corp**, where the user is an ADMIN.
-3. Switch to **Globex** in the sidebar. The counters change and the role line says `signed in as manager`.
-4. Open **Tasks**. Change a status. The row updates immediately (optimistic), and the overview counters are invalidated server-side.
+3. Switch to **Globex** in the sidebar. The counters change; Team and Audit reflect the MANAGER role.
+4. Open **Projects** (the task list). Filter by status, change one, and watch the row update optimistically while the KPI counters are invalidated server-side.
 5. Switch to **Initech** (VIEWER) and try the same. The request is rejected with a 403, the optimistic row reverts, and a notification says why. The UI does not pre-disable the control: the API is the authority.
-6. Open **Team** in Acme Corp: role controls appear. As a VIEWER in Initech, they do not.
+6. Open **Team** in Acme Corp: role controls appear. The command palette (⌘K) jumps between sections without a mouse.
 
 ## What it demonstrates
 
@@ -120,14 +136,21 @@ Generate a session secret with `openssl rand -base64 48`.
 | Script | What it does |
 |---|---|
 | `npm run dev` | Development server |
-| `npm run build` | `prisma generate` + `next build` (runs `prisma migrate deploy` first when `VERCEL_ENV=production`) |
+| `npm run build` | `prisma generate` + `next build` (production build checks migration status and applies pending migrations) |
 | `npm run start` | Serve a production build |
-| `npm test` | Unit and integration tests (Vitest, 89 tests) |
+| `npm test` | Unit and integration tests (Vitest, 113 tests) |
 | `npm run test:coverage` | The same suite plus the coverage gate |
-| `npm run test:e2e` | Playwright against an isolated test database (16 tests) |
+| `npm run test:e2e` | Playwright against an isolated test database (30 tests) |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint with `--max-warnings=0` |
+| `npm run check:pages` | Fails if any `page.tsx` exceeds 100 lines |
+| `npm run check:source` | Fails if any non-page source file exceeds 150 lines |
+| `npm run check:tests` | Fails if `.only` is committed in a test |
+| `npm run verify` | Typecheck, typed lint, size gates, coverage, and E2E |
 | `npm run seed` | Idempotent fixtures: 3 organizations, 2 users, 15 projects, 60 tasks |
+| `npm run perf:budget` | Authenticated LCP/CLS/TTFB and per-route JS-transfer budget against a running build |
+| `npm run lighthouse:budget` | Lighthouse performance/accessibility/best-practices/SEO gate for login |
+| `npm run screenshots` | Refresh the README/demo screenshots in `docs/screenshots/` |
 
 ---
 
@@ -185,7 +208,7 @@ docs/           ADRs, runbook, security and performance notes
 
 ## Decisions and trade-offs
 
-The six decisions worth arguing about, and what each one cost. Full context in [`docs/adr`](./docs/adr/README.md).
+The seven decisions worth arguing about, and what each one cost. Full context in [`docs/adr`](./docs/adr/README.md).
 
 | Decision | What we gained | What we gave up |
 |---|---|---|
@@ -217,20 +240,19 @@ The authorization tests are the interesting ones: `tests/e2e/tenant-isolation.sp
 
 ## Measured performance (live Vercel deployment)
 
-**k6 · 10 VUs · 20 s · `fra1` → Neon `eu-central-1`**
+**k6 · 20 VUs · 30 s · `fra1` → Neon `eu-central-1`**
 
 | Metric | Warm | Cold start |
 |---|---:|---:|
-| Tasks p95 | **180 ms** | 310 ms |
-| Tasks median | 124 ms | — |
+| Tasks p95 | **189 ms** | 310 ms (10 VU baseline) |
+| Tasks median | 131 ms | — |
 | Error rate | **0.00%** | 0.00% |
 
-The first run includes serverless cold starts; the warm run passes the script's
-`p(95)<300` threshold. The API functions are colocated with the database in
+The larger run (20 VUs, 30 s) completed **531 iterations**, with **p95 189 ms**, median **131 ms** and **0.00% errors**. The cold-start baseline was measured separately; the script enforces `p(95)<300` and `http_req_failed < 1%`. The API functions are colocated with the database in
 `fra1` (`x-vercel-id: fra1::fra1`).
 
 ```bash
-k6 run --vus 10 --duration 20s \
+k6 run --vus 20 --duration 30s \
   -e BASE_URL=https://vogric-challenge.vercel.app \
   -e ORG_ID=<acme-org-id> load/tasks.js
 ```
@@ -245,9 +267,9 @@ Everything below was executed on the commit in this branch.
 |---|---|---|
 | Types | `npm run typecheck` | 0 errors |
 | Lint | `npm run lint` | 0 errors, 0 warnings (`--max-warnings=0`) |
-| Unit / integration | `npm test` | **89 passed** in 15 files |
-| Coverage | `npm run test:coverage` | **92.32% statements · 80.71% branches · 95.55% functions** (gate: 80/70/80) |
-| End-to-end | `npm run test:e2e` | **17 passed** |
+| Unit / integration | `npm test` | **113 passed** in 19 files |
+| Coverage | `npm run test:coverage` | **94.00% statements · 81.77% branches · 96.29% functions** (gate: 80/80/80) |
+| End-to-end | `npm run test:e2e` | **30 passed** |
 | Production build | `npm run build` | OK · First Load JS 103 kB · middleware 33.8 kB |
 
 The E2E suite needs its own database and refuses to run against anything whose name does not contain `test`:
@@ -255,17 +277,18 @@ The E2E suite needs its own database and refuses to run against anything whose n
 ```bash
 createdb saas_dashboard && createdb saas_dashboard_test
 # .env.local: DATABASE_URL and DATABASE_URL_TEST (the latter must contain "test")
-npx playwright install chromium
+npx playwright install chromium webkit firefox
 npm run test:e2e
 ```
 
-**What the E2E suite covers:** login (valid, invalid, client-side validation), the middleware gate, logout, an authenticated visitor landing back on the login page, real counters read from the isolated database, organization switching, members and role controls, settings, mobile navigation, the paginated task table, a cross-tenant mutation returning 403, and two axe accessibility scans (dashboard and tasks) that fail on any `critical` or `serious` violation.
+**What the E2E suite covers:** login (valid, invalid, client-side validation), the middleware gate, logout, an authenticated visitor landing back on the login page, real counters read from the isolated database, organization switching, members and role controls, settings, mobile navigation, the command palette, task search/status/project filters, cursor pagination, session revocation, a cross-tenant mutation returning 403, axe on every product screen and the palette, visual snapshots for login/dashboard/projects/team/audit/settings, and WebKit/Firefox smoke.
 
 **What is *not* covered**, stated on purpose:
 
-- Visual regression and contract tests against a deployed environment.
-- The migration was verified against a database with real rows (three legacy statuses survived, an invalid value fails loudly), but not against a large locked table.
+- Contract tests against a deployed environment; the current contract is enforced at runtime and in local E2E.
+- A migration against a large locked table; the migration was verified with real legacy rows, not at production table size.
 - Route handlers are covered by their own authorization tests, which sit outside the `lib/` coverage gate.
+- A soak test and a 100+ VU staging profile; the published k6 run is 20 VUs.
 
 ---
 
@@ -292,13 +315,15 @@ No known defect is hidden here. Each of these is a deliberate scope boundary or 
 | Gap | Status | Why |
 |---|---|---|
 | No internationalization; UI strings are hardcoded English | Accepted | Scope for a single-locale demo; the plumbing (one strings module) would be the first step |
-| Naming drift: route `/dashboard/projects`, link *Projects*, heading *Tasks* | Accepted | The page lists tasks; the route is the legacy name. Renaming it touches both navs and the E2E specs for no user-visible gain |
-| Login is not constant-time for unknown emails | Known | bcrypt only runs for existing accounts, so response timing leaks account existence; the fix is a placeholder hash, ~6 lines |
+| Naming drift: route `/dashboard/projects`, link *Projects*, heading *Projects* | Accepted | The route is the legacy name; the page and link now agree |
 | Per-organization cache tags | Blocked upstream | `use cache` + `cacheTag` need `experimental.cacheComponents`, which Next 15.5 rejects outside canary |
 | No Partial Prerendering | Blocked upstream | Same version gate |
 | Middleware runs on `/api/*` to propagate the request id | Accepted | Narrowing the matcher loses log correlation; see [ADR 0006](./docs/adr/0006-edge-middleware-makes-no-security-decisions.md) |
-| No performance budget in CI | Planned | No bundle-size or Lighthouse gate on pull requests |
 | Password reset, email verification, OAuth | Out of scope | The session layer supports them; the flows do not exist |
+| External observability | Known | Structured logs/Web Vitals only; Sentry/OTel need a DSN |
+| Distributed cache/rate limit | Optional | Upstash is supported but not configured in the demo |
+| SSO / invitations / SCIM | Out of scope | ADR-only; use WorkOS/Auth.js next |
+| Audit retention / DR restore | Not drilled | Latest 100 events, managed backups only |
 
 ---
 
@@ -306,9 +331,9 @@ No known defect is hidden here. Each of these is a deliberate scope boundary or 
 
 | Document | For |
 |---|---|
-| [`docs/adr/`](./docs/adr/README.md) | Six architecture decision records: JWT sessions, active-organization cookie, cursor pagination, observability, single pagination path, middleware |
+| [`docs/adr/`](./docs/adr/README.md) | Seven architecture decision records: JWT sessions, active-organization cookie, cursor pagination, observability, single pagination path, middleware, enterprise identity |
 | [`docs/runbook.md`](./docs/runbook.md) | Deploy, migrate, roll back |
-| [`docs/security.md`](./docs/security.md) | Threat notes and the production auth checklist |
+| [`docs/security.md`](./docs/security.md) | Threat notes and production controls |
 | [`docs/performance.md`](./docs/performance.md) | Rendering and caching strategy in detail |
 | [`docs/observability.md`](./docs/observability.md) | Log events, request correlation, health checks |
 

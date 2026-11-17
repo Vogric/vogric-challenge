@@ -45,7 +45,6 @@ import { jwtVerify } from 'jose'
 
 describe('Auth', () => {
   beforeEach(() => {
-    // Reset jwtVerify mock to default resolved value for each test
     vi.mocked(jwtVerify).mockResolvedValue({
       payload: { userId: 'user-123', email: 'test@example.com', name: 'Test User', jti: 'session-1' },
       protectedHeader: { alg: 'HS256' },
