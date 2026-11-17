@@ -5,7 +5,9 @@ type StatusCount = {
   count: number
 }
 
-const STATUS_META: Record<string, { label: string; color: string; dot: string }> = {
+const STATUS_ORDER = ['todo', 'in_progress', 'done'] as const
+
+const STATUS_META: Record<(typeof STATUS_ORDER)[number], { label: string; color: string; dot: string }> = {
   todo: { label: 'To Do', color: 'bg-slate-400', dot: 'bg-slate-400' },
   in_progress: { label: 'In Progress', color: 'bg-amber-500', dot: 'bg-amber-500' },
   done: { label: 'Done', color: 'bg-emerald-500', dot: 'bg-emerald-500' },
@@ -14,7 +16,7 @@ const STATUS_META: Record<string, { label: string; color: string; dot: string }>
 const numberFormatter = new Intl.NumberFormat('en-US')
 
 export function TaskDistribution({ counts }: { counts: StatusCount[] }) {
-  const normalized = ['todo', 'in_progress', 'done'].map((status) => {
+  const normalized = STATUS_ORDER.map((status) => {
     const found = counts.find((item) => item.status === status)
     return { status, count: found?.count ?? 0 }
   })

@@ -76,7 +76,7 @@ describe('getTasksPage (keyset pagination)', () => {
   it('does not apply a keyset filter on the first page', async () => {
     await getTasksPage('org-1', null, 50)
 
-    const call = vi.mocked(db.task.findMany).mock.calls[0][0]
+    const call = vi.mocked(db.task.findMany).mock.calls[0]?.[0]
     expect(call?.where).toEqual({ project: { organizationId: 'org-1' } })
   })
 
@@ -85,7 +85,7 @@ describe('getTasksPage (keyset pagination)', () => {
 
     await getTasksPage('org-1', cursor, 50)
 
-    const call = vi.mocked(db.task.findMany).mock.calls[0][0]
+    const call = vi.mocked(db.task.findMany).mock.calls[0]?.[0]
     expect(call?.where).toEqual({
       project: { organizationId: 'org-1' },
       OR: [
@@ -121,8 +121,8 @@ describe('getTasksPage (keyset pagination)', () => {
       status: 'done',
       title: { contains: 'api', mode: 'insensitive' },
     }
-    const listCall = vi.mocked(db.task.findMany).mock.calls[0][0]
-    const countCall = vi.mocked(db.task.count).mock.calls[0][0]
+    const listCall = vi.mocked(db.task.findMany).mock.calls[0]?.[0]
+    const countCall = vi.mocked(db.task.count).mock.calls[0]?.[0]
     expect(listCall?.where).toEqual(expectedWhere)
     expect(countCall?.where).toEqual(expectedWhere)
   })

@@ -37,7 +37,8 @@ export function useTaskPagination(filterSignature: string) {
 
   function goToPreviousPage() {
     if (activePagination.history.length === 0) return
-    const previousCursor = activePagination.history[activePagination.history.length - 1]
+    const previousCursor = activePagination.history.at(-1)
+    if (previousCursor === undefined) return
     setPagination({
       signature: filterSignature,
       cursor: previousCursor,

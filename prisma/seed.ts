@@ -169,6 +169,7 @@ async function main() {
 
     for (let i = 0; i < 20; i++) {
       const project = projects[i % projects.length]
+      if (!project) continue
       const title = `Task ${i + 1} of ${project.name}`
       const existing = await db.task.findFirst({
         where: { title, projectId: project.id },
@@ -202,6 +203,7 @@ async function main() {
 
   for (let i = 0; i < bulkTaskCount; i++) {
     const project = acmeProjects[i % acmeProjects.length]
+    if (!project) continue
     const title = `Bulk Task ${i + 1} - ${project.name}`
     const existing = await db.task.findFirst({
       where: { title },

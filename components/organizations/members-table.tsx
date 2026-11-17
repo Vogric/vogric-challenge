@@ -21,7 +21,7 @@ export function MembersTable({ members, canManage, currentUserEmail }: MembersTa
   const [error, setError] = useState<string | null>(null)
 
   async function updateRole(member: Member, role: MembershipSummary['role']) {
-    const previousRole = roles[member.id]
+    const previousRole = roles[member.id] ?? member.role
     setRoles((current) => ({ ...current, [member.id]: role }))
     setPendingId(member.id)
     setError(null)
@@ -78,7 +78,7 @@ export function MembersTable({ members, canManage, currentUserEmail }: MembersTa
               <MemberRow
                 key={member.id}
                 member={member}
-                role={roles[member.id]}
+                role={roles[member.id] ?? member.role}
                 canManage={canManage}
                 isPending={pendingId === member.id}
                 isCurrentUser={member.user.email === currentUserEmail}

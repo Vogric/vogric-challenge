@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { getCurrentUserFromRequest } from '@/lib/auth'
-import { db } from '@/lib/db'
 import { runSerializable } from '@/lib/db-tx'
 import { rejectCrossOrigin } from '@/lib/csrf'
 import { recordAuditEvent } from '@/lib/audit'

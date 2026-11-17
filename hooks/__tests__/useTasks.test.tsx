@@ -185,7 +185,7 @@ describe('useUpdateTaskStatus', () => {
 
     await waitFor(() => {
       const current = queryClient.getQueryData<TasksResponse>(taskKeys.cursor('org-123', null))
-      expect(current?.tasks[0].status).toBe('done')
+      expect(current?.tasks[0]?.status).toBe('done')
     })
   })
 })
