@@ -5,6 +5,7 @@ const testDatabaseUrl = getTestDatabaseUrl()
 
 export default defineConfig({
   testDir: './tests/e2e',
+  snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
   fullyParallel: false,
   retries: process.env.CI ? 2 : 0,
   reporter: 'html',
@@ -33,7 +34,24 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testIgnore: ['**/visual.spec.ts', '**/cross-browser.spec.ts'],
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'visual',
+      testMatch: '**/visual.spec.ts',
+      dependencies: ['chromium'],
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'webkit-smoke',
+      testMatch: '**/cross-browser.spec.ts',
+      use: { ...devices['Desktop Safari'] },
+    },
+    {
+      name: 'firefox-smoke',
+      testMatch: '**/cross-browser.spec.ts',
+      use: { ...devices['Desktop Firefox'] },
     },
   ],
 })

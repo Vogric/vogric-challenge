@@ -57,6 +57,15 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Page size budget
+        run: npm run check:pages
+
+      - name: Source size budget
+        run: npm run check:source
+
+      - name: Test exclusivity guard
+        run: npm run check:tests
+
       - name: Unit tests
         run: npm test
 
@@ -64,10 +73,24 @@ jobs:
         run: npm run test:coverage
 
       - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit firefox
 
       - name: E2E tests
         run: npm run test:e2e
 
       - name: Build
         run: npm run build
+
+      - name: Performance budget
+        run: |
+          DATABASE_URL="$DATABASE_URL_TEST" PORT=3101 npm run start > /tmp/saas-dashboard-start.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://localhost:3101/auth/login > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          PERF_BASE_URL=http://localhost:3101 npm run perf:budget
+          LIGHTHOUSE_BASE_URL=http://localhost:3101 npm run lighthouse:budget

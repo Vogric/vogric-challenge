@@ -4,16 +4,27 @@ vi.mock('@/lib/auth', () => ({
   getCurrentUserFromRequest: vi.fn(),
 }))
 
-vi.mock('@/lib/db', () => ({
-  db: {
+vi.mock('@/lib/db', () => {
+  type MockDb = {
+    membership: { findFirst: ReturnType<typeof vi.fn> }
+    task: { findUnique: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> }
+    auditEvent: { create: ReturnType<typeof vi.fn> }
+    $transaction: (operation: (tx: MockDb) => unknown) => Promise<unknown>
+  }
+  const db: MockDb = {
     membership: { findFirst: vi.fn() },
     task: { findUnique: vi.fn(), update: vi.fn() },
     auditEvent: { create: vi.fn() },
-  },
+    $transaction: vi.fn(async (operation: (tx: MockDb) => unknown) => operation(db)),
+  }
+  return { db }
+})
+
+vi.mock('@/lib/tasks/get-tasks-page', () => ({
+  getTasksPage: vi.fn(),
 }))
 
-vi.mock('@/lib/tasks', () => ({
-  getTasksPage: vi.fn(),
+vi.mock('@/lib/tasks/task-cursor', () => ({
   decodeTaskCursor: vi.fn(),
 }))
 
@@ -24,7 +35,8 @@ vi.mock('next/cache', () => ({
 import { revalidateTag } from 'next/cache'
 import { getCurrentUserFromRequest } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { decodeTaskCursor, getTasksPage } from '@/lib/tasks'
+import { decodeTaskCursor } from '@/lib/tasks/task-cursor'
+import { getTasksPage } from '@/lib/tasks/get-tasks-page'
 import { GET } from '@/app/api/dashboard/tasks/route'
 import { PATCH } from '@/app/api/dashboard/tasks/[id]/route'
 
@@ -77,6 +89,35 @@ describe('GET /api/dashboard/tasks', () => {
     expect(getTasksPage).not.toHaveBeenCalled()
   })
 
+  it('passes validated search, status, and project filters to the data layer', async () => {
+    vi.mocked(db.membership.findFirst).mockResolvedValue({ id: 'm1' } as never)
+    vi.mocked(decodeTaskCursor).mockReturnValue(null as never)
+    vi.mocked(getTasksPage).mockResolvedValue({
+      tasks: [],
+      pagination: { pageSize: 50, totalCount: 0, totalPages: 0, nextCursor: null, hasNextPage: false },
+    })
+
+    const response = await GET(
+      listRequest('orgId=org-1&q=api&status=done&projectId=project-1')
+    )
+
+    expect(response.status).toBe(200)
+    expect(getTasksPage).toHaveBeenCalledWith('org-1', null, 50, {
+      q: 'api',
+      status: 'done',
+      projectId: 'project-1',
+    })
+  })
+
+  it('rejects an unknown task status before touching the data layer', async () => {
+    vi.mocked(db.membership.findFirst).mockResolvedValue({ id: 'm1' } as never)
+
+    const response = await GET(listRequest('orgId=org-1&status=blocked'))
+
+    expect(response.status).toBe(400)
+    expect(getTasksPage).not.toHaveBeenCalled()
+  })
+
   it('rejects a malformed cursor before touching the data layer', async () => {
     vi.mocked(db.membership.findFirst).mockResolvedValue({ id: 'm1' } as never)
     vi.mocked(decodeTaskCursor).mockReturnValue(null as never)
@@ -98,7 +139,11 @@ describe('GET /api/dashboard/tasks', () => {
     const response = await GET(listRequest('orgId=org-1'))
 
     expect(response.status).toBe(200)
-    expect(getTasksPage).toHaveBeenCalledWith('org-1', null, 50)
+    expect(getTasksPage).toHaveBeenCalledWith('org-1', null, 50, {
+      q: undefined,
+      status: undefined,
+      projectId: undefined,
+    })
     expect(response.headers.get('Cache-Control')).toContain('no-store')
   })
 })
@@ -124,6 +169,17 @@ describe('PATCH /api/dashboard/tasks/[id]', () => {
 
     expect(response.status).toBe(401)
     expect(db.task.update).not.toHaveBeenCalled()
+  })
+
+  it('does not write an audit event when the status is unchanged', async () => {
+    vi.mocked(db.task.findUnique).mockResolvedValue(existingTask as never)
+    vi.mocked(db.membership.findFirst).mockResolvedValue({ role: 'ADMIN' } as never)
+
+    const response = await PATCH(patchRequest({ status: 'todo' }), params('task-1'))
+
+    expect(response.status).toBe(200)
+    expect(db.task.update).not.toHaveBeenCalled()
+    expect(db.auditEvent.create).not.toHaveBeenCalled()
   })
 
   it('rejects an unknown status value', async () => {
@@ -165,9 +221,11 @@ describe('PATCH /api/dashboard/tasks/[id]', () => {
     const response = await PATCH(patchRequest({ status: 'done' }), params('task-1'))
 
     expect(response.status).toBe(200)
+    expect(db.$transaction).toHaveBeenCalledTimes(1)
     expect(db.task.update).toHaveBeenCalledWith(
       expect.objectContaining({ data: { status: 'done' } })
     )
+    expect(db.auditEvent.create).toHaveBeenCalledTimes(1)
     expect(revalidateTag).toHaveBeenCalledWith('org-stats')
   })
 })
