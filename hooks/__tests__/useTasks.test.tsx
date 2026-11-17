@@ -107,6 +107,34 @@ describe('useTasks', () => {
     )
   })
 
+  it('sends filters as query parameters', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse,
+    } as Response)
+
+    const { result } = renderHook(
+      () => useTasks('org-123', 50, null, { q: 'api', status: 'done', projectId: 'project-1' }),
+      { wrapper: wrapper(queryClient) }
+    )
+
+    await waitFor(() => expect(result.current.data).toEqual(mockResponse))
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/dashboard/tasks?orgId=org-123&pageSize=50&q=api&status=done&projectId=project-1',
+      expect.objectContaining({ cache: 'no-store' })
+    )
+  })
+
+  it('surfaces a network error', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('offline'))
+
+    const { result } = renderHook(() => useTasks('org-123'), {
+      wrapper: wrapper(queryClient),
+    })
+
+    await waitFor(() => expect(result.current.isError).toBe(true))
+  })
+
   it('surfaces a contract violation instead of silently showing zero tasks', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,

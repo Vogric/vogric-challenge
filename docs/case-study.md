@@ -44,7 +44,7 @@ and platform engineering, not a commercial product.
 ## Results
 
 - Live deployment with CSP nonce, HSTS, COOP/CORP, request IDs and health check.
-- 139 automated tests (109 unit, 30 E2E), 93.92% statement coverage in `lib/` and
+- 143 automated tests (113 unit, 30 E2E), 94.00% statement coverage in `lib/` and
   critical hooks.
 - Warm p95 189 ms for tasks at 20 VUs, 0% errors; cold-start baseline p95 310 ms.
 - Middleware 33.8 kB.

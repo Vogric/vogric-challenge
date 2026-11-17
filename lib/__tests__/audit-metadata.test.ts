@@ -33,6 +33,13 @@ describe('audit metadata', () => {
     })
   })
 
+  it('falls back to raw metadata when a known action has a malformed payload', () => {
+    expect(parseAuditMetadata('task.status_changed', { from: 'invalid', to: 'done' })).toEqual({
+      kind: 'unknown',
+      raw: { from: 'invalid', to: 'done' },
+    })
+  })
+
   it('detects no-op transitions only for known actions', () => {
     expect(isNoOpAuditEvent('task.status_changed', { from: 'done', to: 'done', title: 'Task' })).toBe(true)
     expect(isNoOpAuditEvent('task.status_changed', { from: 'todo', to: 'done', title: 'Task' })).toBe(false)

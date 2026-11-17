@@ -147,6 +147,17 @@ describe('getTasksPage (keyset pagination)', () => {
     expect(result.pagination.hasNextPage).toBe(false)
   })
 
+  it('bounds the count cache when many filter signatures are used', async () => {
+    vi.mocked(db.task.count).mockResolvedValue(1)
+    vi.mocked(db.task.findMany).mockResolvedValue([] as never)
+
+    for (let i = 0; i < 502; i++) {
+      await getTasksPage('org-1', null, 50, { q: `filter-${i}` })
+    }
+
+    expect(db.task.count).toHaveBeenCalledTimes(502)
+  })
+
   it('rejects malformed cursors', () => {
     expect(decodeTaskCursor('not-a-cursor')).toBeNull()
     expect(decodeTaskCursor(Buffer.from('{"id":"missing-date"}').toString('base64url'))).toBeNull()

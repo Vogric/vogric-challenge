@@ -25,7 +25,7 @@ validated server-side; malformed cursors return `400`.
 
 ## Remaining work
 
-`totalCount` is cached per organization for 30 seconds in-process. Status updates
+`totalCount` is cached per organization/filter signature for 30 seconds in-process. The cache is capped at 500 entries and evicts expired/oldest keys, so arbitrary search text cannot grow memory without bound. Status updates
 do not invalidate it because they do not change the row count. A future
 create/delete endpoint must call `clearTaskCountCache()` (or replace the cache
 with a distributed store) after mutating tasks. The page query itself is already

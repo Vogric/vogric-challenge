@@ -22,7 +22,8 @@
     "lighthouse:budget": "node scripts/lighthouse-budget.mjs",
     "check:pages": "node scripts/check-page-size.mjs",
     "check:source": "node scripts/check-source-size.mjs",
-    "check:tests": "node scripts/check-tests.mjs"
+    "check:tests": "node scripts/check-tests.mjs",
+    "verify": "npm run typecheck && npm run lint && npm run check:pages && npm run check:source && npm run check:tests && npm run test:coverage && npm run test:e2e"
   },
   "dependencies": {
     "@neon/config": "^1.11.3",

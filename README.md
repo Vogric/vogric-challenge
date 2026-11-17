@@ -11,7 +11,7 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 ![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)
 ![React](https://img.shields.io/badge/React-19-61dafb.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)
-![Tests](https://img.shields.io/badge/Tests-139%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/Tests-143%20passing-brightgreen.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
 
@@ -20,8 +20,8 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 | Signal | Value |
 |---|---|
 | Live deployment | <https://vogric-challenge.vercel.app> |
-| Automated tests | **139** (109 unit + 30 E2E) |
-| Coverage gate | **93.92% statements** · 79.47% branches · 96.22% functions |
+| Automated tests | **143** (113 unit + 30 E2E) |
+| Coverage gate | **94.00% statements** · 81.77% branches · 96.29% functions |
 | Tasks p95 (warm) | **189 ms** at 20 VUs · 0.00% errors |
 | Middleware | **33.8 kB** |
 | Lighthouse (login) | **99 performance · 100 accessibility · 100 SEO** |
@@ -36,6 +36,7 @@ A multi-tenant B2B administration panel built with **Next.js 15 (App Router), Re
 - [2-minute video script](./docs/video-script.md)
 - [Interview Q&A](./docs/interview-qa.md)
 - [UI refresh plan](./docs/ui-refresh-plan.md)
+- [Frontend conventions](./docs/frontend-conventions.md)
 - [Screenshots](./docs/screenshots)
 - [ADRs and runbook](./docs/adr/README.md)
 
@@ -145,6 +146,7 @@ Generate a session secret with `openssl rand -base64 48`.
 | `npm run check:pages` | Fails if any `page.tsx` exceeds 100 lines |
 | `npm run check:source` | Fails if any non-page source file exceeds 150 lines |
 | `npm run check:tests` | Fails if `.only` is committed in a test |
+| `npm run verify` | Typecheck, typed lint, size gates, coverage, and E2E |
 | `npm run seed` | Idempotent fixtures: 3 organizations, 2 users, 15 projects, 60 tasks |
 | `npm run perf:budget` | Authenticated LCP/CLS/TTFB and per-route JS-transfer budget against a running build |
 | `npm run lighthouse:budget` | Lighthouse performance/accessibility/best-practices/SEO gate for login |
@@ -265,8 +267,8 @@ Everything below was executed on the commit in this branch.
 |---|---|---|
 | Types | `npm run typecheck` | 0 errors |
 | Lint | `npm run lint` | 0 errors, 0 warnings (`--max-warnings=0`) |
-| Unit / integration | `npm test` | **109 passed** in 19 files |
-| Coverage | `npm run test:coverage` | **93.92% statements · 79.47% branches · 96.22% functions** (gate: 80/70/80) |
+| Unit / integration | `npm test` | **113 passed** in 19 files |
+| Coverage | `npm run test:coverage` | **94.00% statements · 81.77% branches · 96.29% functions** (gate: 80/80/80) |
 | End-to-end | `npm run test:e2e` | **21 passed** |
 | Production build | `npm run build` | OK · First Load JS 103 kB · middleware 33.8 kB |
 
