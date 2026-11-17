@@ -4,6 +4,9 @@ import { TaskDistribution } from '@/components/dashboard/task-distribution'
 import { RecentActivity } from '@/components/dashboard/recent-activity'
 import { TeamOverview } from '@/components/dashboard/team-overview'
 
+const RECENT_ACTIVITY_SCAN_LIMIT = 10
+const RECENT_ACTIVITY_VISIBLE_LIMIT = 5
+
 export async function DashboardSections({ organizationId }: { organizationId: string }) {
   const [statusCounts, rawRecentActivity, team] = await Promise.all([
     db.task.groupBy({
@@ -14,7 +17,7 @@ export async function DashboardSections({ organizationId }: { organizationId: st
     db.auditEvent.findMany({
       where: { organizationId },
       orderBy: { createdAt: 'desc' },
-      take: 10,
+      take: RECENT_ACTIVITY_SCAN_LIMIT,
       select: {
         id: true,
         action: true,
@@ -41,12 +44,11 @@ export async function DashboardSections({ organizationId }: { organizationId: st
     count: item._count._all,
   }))
 
-  // Keep the feed honest: legacy no-op status changes should not look like
-  // recent work. Fetch a few extra rows so the card can still show five real
-  // events after filtering.
+  // Scan extra rows because no-op transitions are filtered out below; the card
+  // still needs five meaningful events.
   const recentActivity = rawRecentActivity
     .filter((event) => !isNoOpAuditEvent(event.action, event.metadata))
-    .slice(0, 5)
+    .slice(0, RECENT_ACTIVITY_VISIBLE_LIMIT)
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">

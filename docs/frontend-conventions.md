@@ -46,6 +46,15 @@ the enforcement; this file explains the intent.
 - Client caches with unbounded key spaces need a maximum-entry policy (for
   example, the task count cache).
 
+## Comments
+
+- Explain the non-obvious **why**, constraint, or trade-off. Do not restate the
+  code or narrate obvious operations.
+- Prefer a named constant over a comment that explains a magic number.
+- Delete comments when the behavior or legacy condition no longer exists.
+- Keep security/transaction/concurrency rationale; those are the comments a
+  reviewer cannot reconstruct quickly.
+
 ## Accessibility and UX
 
 - Every page has one `h1`, a skip link, and visible focus styles.
