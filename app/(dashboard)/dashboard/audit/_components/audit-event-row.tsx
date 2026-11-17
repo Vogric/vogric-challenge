@@ -1,5 +1,6 @@
 import { Activity, ArrowRight, ListChecks, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import type { Prisma } from '@prisma/client'
 import { parseAuditMetadata } from '@/lib/audit-metadata'
 import { formatRelativeTime } from '@/lib/format-relative-time'
 
@@ -8,7 +9,7 @@ export type AuditEvent = {
   action: string
   entityType: string
   entityId: string | null
-  metadata: unknown
+  metadata: Prisma.JsonValue
   createdAt: Date
   actor: { email: string; name: string | null }
 }
@@ -68,10 +69,16 @@ export function AuditEventRow({ event }: { event: AuditEvent }) {
     icon: Activity,
   }
   const Icon = meta.icon
-  const metadata = parseAuditMetadata(event.metadata)
-  const title = metadata?.title ?? null
-  const from = metadata?.from ?? null
-  const to = metadata?.to ?? null
+  const parsedMetadata = parseAuditMetadata(event.action, event.metadata)
+  const title = parsedMetadata?.kind === 'task.status_changed' ? parsedMetadata.title : null
+  const from = parsedMetadata && parsedMetadata.kind !== 'unknown' ? parsedMetadata.from : null
+  const to = parsedMetadata && parsedMetadata.kind !== 'unknown' ? parsedMetadata.to : null
+  const metadata =
+    parsedMetadata?.kind === 'unknown'
+      ? parsedMetadata.raw
+      : parsedMetadata
+        ? { ...parsedMetadata }
+        : null
   const entity = event.entityType.toLowerCase()
 
   return (

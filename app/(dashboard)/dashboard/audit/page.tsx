@@ -51,7 +51,7 @@ export default async function AuditPage() {
     },
   })
 
-  const events = rawEvents.filter((event) => !isNoOpAuditEvent(event.metadata))
+  const events = rawEvents.filter((event) => !isNoOpAuditEvent(event.action, event.metadata))
 
   return (
     <div className="space-y-6">

@@ -54,7 +54,7 @@ event.”
 **Screen:** terminal with `npm run test:coverage`, then `k6` summary, then
 `/api/health`.
 
-**Voice:** “138 tests, a 93.76% coverage gate, axe checks, and a p95 of
+**Voice:** “139 tests, a 93.92% coverage gate, axe checks, and a p95 of
 189 milliseconds with zero errors.”
 
 ## 1:55–2:00 — Close

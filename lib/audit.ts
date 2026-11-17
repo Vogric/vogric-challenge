@@ -1,14 +1,22 @@
 import type { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
+import type {
+  MembershipRoleChangedMetadata,
+  TaskStatusChangedMetadata,
+} from '@/lib/audit-metadata'
 
-type AuditInput = {
+type AuditBase = {
   organizationId: string
   actorId: string
-  action: string
   entityType: string
   entityId?: string | null
-  metadata?: Record<string, unknown>
 }
+
+type AuditInput = AuditBase &
+  (
+    | { action: 'task.status_changed'; metadata: TaskStatusChangedMetadata }
+    | { action: 'membership.role_changed'; metadata: MembershipRoleChangedMetadata }
+  )
 
 /**
  * Records a tenant-scoped audit event. Passing a transaction client keeps the

@@ -45,7 +45,7 @@ export async function DashboardSections({ organizationId }: { organizationId: st
   // recent work. Fetch a few extra rows so the card can still show five real
   // events after filtering.
   const recentActivity = rawRecentActivity
-    .filter((event) => !isNoOpAuditEvent(event.metadata))
+    .filter((event) => !isNoOpAuditEvent(event.action, event.metadata))
     .slice(0, 5)
 
   return (

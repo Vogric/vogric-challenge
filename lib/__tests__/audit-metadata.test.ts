@@ -3,19 +3,39 @@ import { parseAuditMetadata } from '@/lib/audit-metadata'
 import { isNoOpAuditEvent } from '@/lib/audit-is-no-op'
 
 describe('audit metadata', () => {
-  it('parses known transition fields and preserves unknown keys', () => {
-    expect(parseAuditMetadata({ from: 'todo', to: 'done', title: 'Task', extra: 1 })).toEqual({
-      from: 'todo',
-      to: 'done',
-      title: 'Task',
-      extra: 1,
+  it('parses task transitions with their action-specific type', () => {
+    expect(
+      parseAuditMetadata('task.status_changed', {
+        from: 'todo',
+        to: 'done',
+        title: 'Task',
+      })
+    ).toEqual({ kind: 'task.status_changed', from: 'todo', to: 'done', title: 'Task' })
+  })
+
+  it('parses membership roles and keeps unknown events raw', () => {
+    expect(
+      parseAuditMetadata('membership.role_changed', {
+        targetUserId: 'user-1',
+        from: 'ADMIN',
+        to: 'MANAGER',
+      })
+    ).toEqual({
+      kind: 'membership.role_changed',
+      targetUserId: 'user-1',
+      from: 'ADMIN',
+      to: 'MANAGER',
+    })
+
+    expect(parseAuditMetadata('future.event', { arbitrary: true })).toEqual({
+      kind: 'unknown',
+      raw: { arbitrary: true },
     })
   })
 
-  it('returns null for non-objects and marks no-op transitions', () => {
-    expect(parseAuditMetadata(null)).toBeNull()
-    expect(parseAuditMetadata('invalid')).toBeNull()
-    expect(isNoOpAuditEvent({ from: 'done', to: 'done' })).toBe(true)
-    expect(isNoOpAuditEvent({ from: 'todo', to: 'done' })).toBe(false)
+  it('detects no-op transitions only for known actions', () => {
+    expect(isNoOpAuditEvent('task.status_changed', { from: 'done', to: 'done', title: 'Task' })).toBe(true)
+    expect(isNoOpAuditEvent('task.status_changed', { from: 'todo', to: 'done', title: 'Task' })).toBe(false)
+    expect(isNoOpAuditEvent('future.event', { from: 'x', to: 'x' })).toBe(false)
   })
 })
