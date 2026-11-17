@@ -4,15 +4,15 @@
 
 ```mermaid
 flowchart LR
-  B[Browser] --> E[Vercel Edge Middleware<br/>CSP nonce · request id · cheap auth gate]
-  E --> N[Next.js App Router<br/>Server Components · streaming]
-  N --> A[Auth<br/>JWT + revocable Session]
-  N --> Q[TanStack Query<br/>prefetch + hydration]
-  N --> P[Prisma]
-  P --> DB[(Neon PostgreSQL<br/>eu-central-1)]
-  N --> C[KPI cache<br/>unstable_cache + tag]
-  N --> U[(Upstash Redis<br/>optional rate limit)]
-  N --> V[/api/vitals<br/>Web Vitals]
+  B["Browser"] --> E["Vercel Edge Middleware · CSP nonce · request id · cheap auth gate"]
+  E --> N["Next.js App Router · Server Components · streaming"]
+  N --> A["Auth · JWT + revocable Session"]
+  N --> Q["TanStack Query · prefetch + hydration"]
+  N --> P["Prisma"]
+  P --> DB[("Neon PostgreSQL · eu-central-1")]
+  N --> C["KPI cache · unstable_cache + tag"]
+  N --> U[("Upstash Redis · optional rate limit")]
+  N --> V["/api/vitals · Web Vitals"]
 ```
 
 The middleware makes **no authorization decision**. It only provides a cheap
@@ -93,8 +93,8 @@ the production database. See `docs/runbook.md`.
 ```mermaid
 flowchart LR
   L[Task list request] --> C{cursor?}
-  C -->|no| F[first page<br/>order updatedAt desc, id desc]
-  C -->|yes| N[next page<br/>updatedAt/id < cursor]
+  C -->|no| F["first page · order updatedAt desc, id desc"]
+  C -->|yes| N["next page · updatedAt/id < cursor"]
   F --> I[(Task projectId, updatedAt index)]
   N --> I
   F --> K[totalCount cache 30s]

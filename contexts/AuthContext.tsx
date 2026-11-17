@@ -22,14 +22,9 @@ async function fetchCurrentUser(): Promise<AuthUser | null> {
 }
 
 /**
- * `initialUser` comes from the Server Component that already resolved the
- * session, so the provider never has to ask the network for a user the server
- * just handed it.
- *
- * Before: `staleTime: 0` + `refetchOnMount: 'always'` meant every dashboard load
- * fired `/api/auth/me` again and the navbar rendered "Guest" until it returned.
- * Now the query starts hydrated and merely revalidates in the background after
- * five minutes.
+ * `initialUser` is hydrated by the Server Component so the provider never asks
+ * `/api/auth/me` for a user the server already resolved. Background
+ * revalidation starts after five minutes.
  */
 export function AuthProvider({
   children,

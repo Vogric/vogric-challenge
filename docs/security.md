@@ -20,6 +20,6 @@
 - Rate limiting uses Upstash Redis when `UPSTASH_REDIS_REST_URL` and
   `UPSTASH_REDIS_REST_TOKEN` are set; otherwise it falls back to an in-memory
   counter for local development.
-- There is no JWT revocation/denylist yet.
+- Sessions are revocable server-side; there is no separate JWT denylist.
 - A nonce-based CSP is enforced in production; development keeps CSP disabled for HMR.
-- Next.js is on 15.5.29; remaining transitive advisories are tracked in `docs/security-upgrade.md`.
+- Next.js is on 15.5.29; remaining transitive advisories are tracked by Dependabot and `npm audit`.

@@ -44,10 +44,11 @@ and platform engineering, not a commercial product.
 ## Results
 
 - Live deployment with CSP nonce, HSTS, COOP/CORP, request IDs and health check.
-- 106 automated tests (89 unit, 17 E2E), 92.32% statement coverage in `lib/` and
+- 143 automated tests (113 unit, 30 E2E), 94.00% statement coverage in `lib/` and
   critical hooks.
-- Warm p95 180 ms for tasks at 10 VUs, 0% errors; cold-start p95 310 ms.
+- Warm p95 189 ms for tasks at 20 VUs, 0% errors; cold-start baseline p95 310 ms.
 - Middleware 33.8 kB.
+- Lighthouse login: 99 performance, 100 accessibility, 96 best practices, 100 SEO.
 - Cross-tenant mutation returns 403; last-admin demotion is blocked in a
   serializable transaction.
 - Audit events for task status and membership role changes.
