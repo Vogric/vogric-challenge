@@ -20,8 +20,11 @@ vi.mock('@/lib/db', () => {
   return { db }
 })
 
-vi.mock('@/lib/tasks', () => ({
+vi.mock('@/lib/tasks/get-tasks-page', () => ({
   getTasksPage: vi.fn(),
+}))
+
+vi.mock('@/lib/tasks/task-cursor', () => ({
   decodeTaskCursor: vi.fn(),
 }))
 
@@ -32,7 +35,8 @@ vi.mock('next/cache', () => ({
 import { revalidateTag } from 'next/cache'
 import { getCurrentUserFromRequest } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { decodeTaskCursor, getTasksPage } from '@/lib/tasks'
+import { decodeTaskCursor } from '@/lib/tasks/task-cursor'
+import { getTasksPage } from '@/lib/tasks/get-tasks-page'
 import { GET } from '@/app/api/dashboard/tasks/route'
 import { PATCH } from '@/app/api/dashboard/tasks/[id]/route'
 

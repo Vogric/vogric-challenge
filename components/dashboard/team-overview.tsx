@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { initials } from '@/lib/utils'
+import { initials } from '@/lib/initials'
 
 type TeamMember = {
   id: string

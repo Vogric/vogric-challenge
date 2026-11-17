@@ -10,7 +10,9 @@ vi.mock('@/lib/db', () => ({
 }))
 
 import { db } from '@/lib/db'
-import { clearTaskCountCache, decodeTaskCursor, getTasksPage } from '@/lib/tasks'
+import { clearTaskCountCache } from '@/lib/tasks/task-count'
+import { decodeTaskCursor } from '@/lib/tasks/task-cursor'
+import { getTasksPage } from '@/lib/tasks/get-tasks-page'
 
 function buildRow(index: number, minutesPast = 0) {
   return {

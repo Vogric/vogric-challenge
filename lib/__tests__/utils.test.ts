@@ -1,5 +1,7 @@
 import { afterEach, describe, it, expect, vi } from 'vitest'
-import { cn, formatRelativeTime, initials } from '@/lib/utils'
+import { cn } from '@/lib/cn'
+import { formatRelativeTime } from '@/lib/format-relative-time'
+import { initials } from '@/lib/initials'
 
 describe('cn', () => {
   it('should merge classes correctly', () => {

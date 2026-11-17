@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { getRequestId, logError, logInfo } from '@/lib/logger'
+import { getRequestId } from '@/lib/logger/get-request-id'
+import { logError } from '@/lib/logger/log-error'
+import { logInfo } from '@/lib/logger/log-info'
 
 describe('logger', () => {
   afterEach(() => {

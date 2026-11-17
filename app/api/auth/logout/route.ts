@@ -1,6 +1,7 @@
 import { clearSessionCookie, revokeSessionFromCookie } from '@/lib/auth'
 import { rejectCrossOrigin } from '@/lib/csrf'
-import { getRequestId, logError } from '@/lib/logger'
+import { getRequestId } from '@/lib/logger/get-request-id'
+import { logError } from '@/lib/logger/log-error'
 
 export const dynamic = 'force-dynamic'
 

@@ -1,4 +1,4 @@
-import type { Command } from './commands'
+import type { Command } from './command'
 import { CommandOption } from './command-option'
 
 type CommandListProps = {

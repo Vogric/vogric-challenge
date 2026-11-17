@@ -1,7 +1,7 @@
 import { UserRound } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { SettingsUser } from './settings-types'
-import { initials } from '@/lib/utils'
+import { initials } from '@/lib/initials'
 
 export function SettingsAccountCard({ user }: { user: SettingsUser }) {
   return (

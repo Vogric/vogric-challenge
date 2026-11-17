@@ -6,7 +6,7 @@ import { LayoutDashboard, FolderKanban, Users, Settings, LogOut, History } from 
 import { useLogout } from '@/hooks/useLogout'
 import { useAuth } from '@/hooks/useAuth'
 import { OrganizationSwitcher } from '@/components/organizations/organization-switcher'
-import { initials } from '@/lib/utils'
+import { initials } from '@/lib/initials'
 import type { MembershipSummary } from '@/types/organizations'
 
 const NAV_ITEMS = [

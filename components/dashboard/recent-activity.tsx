@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { formatRelativeTime, initials } from '@/lib/utils'
+import { formatRelativeTime } from '@/lib/format-relative-time'
+import { initials } from '@/lib/initials'
 
 type Activity = {
   id: string

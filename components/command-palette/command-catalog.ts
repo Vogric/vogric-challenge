@@ -1,14 +1,5 @@
 import { FolderKanban, History, LayoutDashboard, Settings, Users } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
-
-export type Command = {
-  id: string
-  label: string
-  description: string
-  href: string
-  icon: LucideIcon
-  keywords: string
-}
+import type { Command } from './command'
 
 const BASE_COMMANDS: Command[] = [
   {
@@ -56,13 +47,4 @@ const AUDIT_COMMAND: Command = {
 
 export function getCommands(canViewAudit: boolean): Command[] {
   return canViewAudit ? [...BASE_COMMANDS, AUDIT_COMMAND] : BASE_COMMANDS
-}
-
-export function filterCommands(commands: Command[], query: string): Command[] {
-  const normalized = query.trim().toLowerCase()
-  if (!normalized) return commands
-
-  return commands.filter((command) =>
-    `${command.label} ${command.description} ${command.keywords}`.toLowerCase().includes(normalized)
-  )
 }

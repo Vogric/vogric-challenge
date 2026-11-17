@@ -1,5 +1,5 @@
 import type { Instrumentation } from 'next'
-import { logError } from '@/lib/logger'
+import { logError } from '@/lib/logger/log-error'
 
 /**
  * Next calls `register` once per server runtime, before the first request.

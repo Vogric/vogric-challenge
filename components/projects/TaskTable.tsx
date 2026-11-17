@@ -2,7 +2,7 @@
 
 import { ChevronDown } from 'lucide-react'
 import type { Task, TaskStatus } from '@/types/tasks'
-import { formatRelativeTime } from '@/lib/utils'
+import { formatRelativeTime } from '@/lib/format-relative-time'
 
 type TaskTableProps = {
   items: Task[]

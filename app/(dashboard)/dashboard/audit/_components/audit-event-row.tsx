@@ -1,7 +1,8 @@
 import { Activity, ArrowRight, ListChecks, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { metadataOf, stringValue } from './audit-format'
-import { formatRelativeTime } from '@/lib/utils'
+import { metadataOf } from './audit-metadata'
+import { stringValue } from './audit-string-value'
+import { formatRelativeTime } from '@/lib/format-relative-time'
 
 export type AuditEvent = {
   id: string

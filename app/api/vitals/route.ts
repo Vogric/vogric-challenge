@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { rejectCrossOrigin } from '@/lib/csrf'
-import { getRequestId, logInfo } from '@/lib/logger'
+import { getRequestId } from '@/lib/logger/get-request-id'
+import { logInfo } from '@/lib/logger/log-info'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { clientIp } from '@/lib/request-ip'
 

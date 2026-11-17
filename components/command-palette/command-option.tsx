@@ -1,5 +1,5 @@
 import { CornerDownLeft } from 'lucide-react'
-import type { Command } from './commands'
+import type { Command } from './command'
 
 type CommandOptionProps = {
   command: Command

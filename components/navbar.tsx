@@ -6,7 +6,7 @@ import { ChevronRight, LogOut, Moon, Search, Sun } from 'lucide-react'
 import { useTheme } from '@/hooks/useTheme'
 import { useAuth } from '@/hooks/useAuth'
 import { useLogout } from '@/hooks/useLogout'
-import { initials } from '@/lib/utils'
+import { initials } from '@/lib/initials'
 
 const SEGMENT_LABELS: Record<string, string> = {
   dashboard: 'Dashboard',

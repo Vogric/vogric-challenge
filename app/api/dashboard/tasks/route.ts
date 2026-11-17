@@ -1,8 +1,10 @@
 import { z } from 'zod'
 import { getCurrentUserFromRequest } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { decodeTaskCursor, getTasksPage } from '@/lib/tasks'
-import { getRequestId, logError } from '@/lib/logger'
+import { decodeTaskCursor } from '@/lib/tasks/task-cursor'
+import { getTasksPage } from '@/lib/tasks/get-tasks-page'
+import { getRequestId } from '@/lib/logger/get-request-id'
+import { logError } from '@/lib/logger/log-error'
 import { TASK_PAGE_SIZE } from '@/types/tasks'
 import { taskStatusSchema } from '@/lib/validations/tasks'
 

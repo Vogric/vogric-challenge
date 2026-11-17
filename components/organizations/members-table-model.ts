@@ -1,5 +1,5 @@
 import type { MembershipSummary } from '@/types/organizations'
-import { initials } from '@/lib/utils'
+import { initials } from '@/lib/initials'
 
 export type Member = {
   id: string

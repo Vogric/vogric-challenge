@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { filterCommands, getCommands, type Command } from './command-palette/commands'
+import { filterCommands } from './command-palette/filter-commands'
+import { getCommands } from './command-palette/command-catalog'
+import type { Command } from './command-palette/command'
 import { CommandFooter } from './command-palette/command-footer'
 import { CommandSearch } from './command-palette/command-search'
 import { CommandList } from './command-palette/command-list'
