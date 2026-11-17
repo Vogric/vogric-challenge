@@ -1,7 +1,6 @@
 import { Activity, ArrowRight, ListChecks, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { metadataOf } from './audit-metadata'
-import { stringValue } from './audit-string-value'
+import { parseAuditMetadata } from '@/lib/audit-metadata'
 import { formatRelativeTime } from '@/lib/format-relative-time'
 
 export type AuditEvent = {
@@ -69,10 +68,10 @@ export function AuditEventRow({ event }: { event: AuditEvent }) {
     icon: Activity,
   }
   const Icon = meta.icon
-  const metadata = metadataOf(event.metadata)
-  const title = metadata ? stringValue(metadata.title) : null
-  const from = metadata ? stringValue(metadata.from) : null
-  const to = metadata ? stringValue(metadata.to) : null
+  const metadata = parseAuditMetadata(event.metadata)
+  const title = metadata?.title ?? null
+  const from = metadata?.from ?? null
+  const to = metadata?.to ?? null
   const entity = event.entityType.toLowerCase()
 
   return (

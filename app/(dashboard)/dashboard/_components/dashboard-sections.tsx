@@ -1,4 +1,5 @@
 import { db } from '@/lib/db'
+import { isNoOpAuditEvent } from '@/lib/audit-is-no-op'
 import { TaskDistribution } from '@/components/dashboard/task-distribution'
 import { RecentActivity } from '@/components/dashboard/recent-activity'
 import { TeamOverview } from '@/components/dashboard/team-overview'
@@ -44,13 +45,7 @@ export async function DashboardSections({ organizationId }: { organizationId: st
   // recent work. Fetch a few extra rows so the card can still show five real
   // events after filtering.
   const recentActivity = rawRecentActivity
-    .filter((event) => {
-      if (!event.metadata || typeof event.metadata !== 'object' || Array.isArray(event.metadata)) {
-        return true
-      }
-      const metadata = event.metadata as Record<string, unknown>
-      return metadata.from !== metadata.to
-    })
+    .filter((event) => !isNoOpAuditEvent(event.metadata))
     .slice(0, 5)
 
   return (

@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { Activity } from 'lucide-react'
 import { getRequestUser } from '@/lib/request-user'
 import { getActiveMembership } from '@/lib/organizations'
-import { isNoOpAuditEvent } from './_components/audit-no-op'
+import { isNoOpAuditEvent } from '@/lib/audit-is-no-op'
 import { db } from '@/lib/db'
 import { AuditTimeline } from './_components/audit-timeline'
 
