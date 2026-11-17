@@ -1,9 +1,10 @@
 'use client'
 
-import React from 'react'
+import { useState, type ReactNode } from 'react'
 import { LazyMotion, domAnimation } from 'framer-motion'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { makeQueryClient } from '@/lib/query'
+import type { QueryClient } from '@tanstack/react-query'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import { NotificationViewport } from '@/components/notification-viewport'
@@ -13,8 +14,8 @@ import { NotificationViewport } from '@/components/notification-viewport'
  * dashboard layout, which is the only subtree that knows the user on the server
  * and can therefore hand the provider a hydrated value.
  */
-export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = React.useState(() => makeQueryClient())
+export function Providers({ children }: { children: ReactNode }) {
+  const [queryClient] = useState<QueryClient>(() => makeQueryClient())
 
   return (
     <LazyMotion features={domAnimation} strict>

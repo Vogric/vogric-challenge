@@ -1,8 +1,7 @@
 'use client'
 
-import { createContext, useContext, useMemo, useState, useEffect } from 'react'
-
-export type Theme = 'light' | 'dark' | 'system'
+import { createContext, useContext, useMemo, useState, useEffect, type ReactNode } from 'react'
+import { THEME_STORAGE_KEY, type Theme } from '@/contexts/theme'
 
 type ThemeContextValue = {
   theme: Theme
@@ -12,9 +11,19 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('system')
+function readStoredTheme(): Theme {
+  if (typeof window === 'undefined') return 'system'
+  const stored = window.localStorage.getItem(THEME_STORAGE_KEY)
+  return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system'
+}
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setTheme] = useState<Theme>(readStoredTheme)
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
+
+  useEffect(() => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme)
+  }, [theme])
 
   useEffect(() => {
     const root = window.document.documentElement
@@ -23,6 +32,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const applyTheme = () => {
       const resolved = theme === 'system' ? (media.matches ? 'dark' : 'light') : theme
       root.classList.toggle('dark', resolved === 'dark')
+      root.style.colorScheme = resolved
       setResolvedTheme(resolved)
     }
 
@@ -46,3 +56,4 @@ export function useTheme() {
 }
 
 export type { ThemeContextValue }
+export type { Theme } from '@/contexts/theme'

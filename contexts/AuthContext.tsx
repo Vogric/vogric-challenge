@@ -1,10 +1,9 @@
 'use client'
 
-import { createContext, useContext, useMemo } from 'react'
+import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { authKeys } from '@/lib/query-keys'
-
-type AuthUser = { id: string; email: string; name?: string | null }
+import { currentUserResponseSchema, type AuthUser } from '@/lib/validations/auth'
 
 type AuthContextValue = {
   user: AuthUser | null
@@ -13,18 +12,13 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
-type CurrentUserResponse = {
-  user: AuthUser | null
-}
-
 async function fetchCurrentUser(): Promise<AuthUser | null> {
   const res = await fetch('/api/auth/me', {
     cache: 'no-store',
     credentials: 'include',
   })
   if (!res.ok) return null
-  const data = (await res.json()) as CurrentUserResponse
-  return data.user ?? null
+  return currentUserResponseSchema.parse(await res.json()).user
 }
 
 /**
@@ -41,7 +35,7 @@ export function AuthProvider({
   children,
   initialUser,
 }: {
-  children: React.ReactNode
+  children: ReactNode
   initialUser: AuthUser | null
 }) {
   const { data: user, isLoading } = useQuery({

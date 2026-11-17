@@ -1,18 +1,26 @@
 import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
+import { headers } from 'next/headers'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import './globals.css'
 import { Providers } from './providers'
 import { WebVitals } from '@/components/web-vitals'
+import { THEME_BOOTSTRAP } from '@/contexts/theme'
 
 export const metadata: Metadata = {
   title: 'Vogric Ops — Multi-tenant dashboard',
   description: 'Multi-tenant operations dashboard built with Next.js and Prisma',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const nonce = (await headers()).get('x-nonce') ?? undefined
+
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+      <head>
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
+      </head>
       <body className="font-sans">
         <Providers>
           <a

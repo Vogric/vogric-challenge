@@ -2,10 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ChevronRight, Moon, Sun } from 'lucide-react'
+import { ChevronRight, LogOut, Moon, Search, Sun } from 'lucide-react'
 import { useTheme } from '@/hooks/useTheme'
 import { useAuth } from '@/hooks/useAuth'
 import { useLogout } from '@/hooks/useLogout'
+import { initials } from '@/lib/initials'
 
 const SEGMENT_LABELS: Record<string, string> = {
   dashboard: 'Dashboard',
@@ -42,12 +43,11 @@ function Breadcrumb() {
   )
 }
 
-function initials(email: string | undefined): string {
-  if (!email) return 'U'
-  return email.slice(0, 2).toUpperCase()
+type NavbarProps = {
+  onOpenCommandPalette: () => void
 }
 
-export function Navbar() {
+export function Navbar({ onOpenCommandPalette }: NavbarProps) {
   const { resolvedTheme, setTheme } = useTheme()
   const { user } = useAuth()
   const { logout, isPending: isLoggingOut } = useLogout()
@@ -67,6 +67,22 @@ export function Navbar() {
       <div className="flex-1" />
       <button
         type="button"
+        onClick={onOpenCommandPalette}
+        aria-keyshortcuts="Meta+K Control+K"
+        className="flex h-9 items-center gap-2 rounded-[10px] border border-border bg-card px-2.5 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <Search className="h-3.5 w-3.5" aria-hidden="true" />
+        <span className="sr-only">Search or jump to...</span>
+        <span aria-hidden="true" className="hidden sm:inline">Search or jump to...</span>
+        <kbd
+          aria-hidden="true"
+          className="hidden rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-foreground sm:inline"
+        >
+          ⌘K
+        </kbd>
+      </button>
+      <button
+        type="button"
         onClick={() => setTheme(nextTheme)}
         aria-label={`Switch to ${nextTheme} theme`}
         className="flex h-9 w-9 items-center justify-center rounded-[10px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -79,7 +95,7 @@ export function Navbar() {
       </button>
       <div className="flex items-center gap-2 border-l border-border pl-3">
         <div className="hidden h-8 w-8 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground sm:flex">
-          {initials(user?.email)}
+          {initials(user?.name, user?.email)}
         </div>
         <div className="hidden md:block">
           <p className="max-w-[180px] truncate text-xs font-medium text-foreground">
@@ -91,12 +107,17 @@ export function Navbar() {
         </div>
         <button
           type="button"
-          onClick={logout}
+          onClick={() => {
+            void logout()
+          }}
           disabled={isLoggingOut}
           aria-busy={isLoggingOut}
-          className="ml-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+          aria-label={isLoggingOut ? 'Signing out...' : 'Sign out'}
+          title={isLoggingOut ? 'Signing out...' : 'Sign out'}
+          className="ml-1 inline-flex h-8 items-center gap-1.5 rounded-lg border border-transparent px-2 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isLoggingOut ? 'Signing out...' : 'Sign out'}
+          <LogOut className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+          <span className="hidden sm:inline">{isLoggingOut ? 'Signing out...' : 'Sign out'}</span>
         </button>
       </div>
     </header>

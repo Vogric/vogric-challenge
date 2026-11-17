@@ -6,6 +6,7 @@ import { LayoutDashboard, FolderKanban, Users, Settings, LogOut, History } from 
 import { useLogout } from '@/hooks/useLogout'
 import { useAuth } from '@/hooks/useAuth'
 import { OrganizationSwitcher } from '@/components/organizations/organization-switcher'
+import { initials } from '@/lib/initials'
 import type { MembershipSummary } from '@/types/organizations'
 
 const NAV_ITEMS = [
@@ -19,11 +20,6 @@ const NAV_ITEMS = [
 type SidebarProps = {
   memberships: MembershipSummary[]
   activeOrganizationId: string | null
-}
-
-function initials(email: string | undefined): string {
-  if (!email) return 'U'
-  return email.slice(0, 2).toUpperCase()
 }
 
 export function Sidebar({ memberships, activeOrganizationId }: SidebarProps) {
@@ -86,7 +82,7 @@ export function Sidebar({ memberships, activeOrganizationId }: SidebarProps) {
       <div className="border-t border-sidebar-border p-3">
         <div className="flex items-center gap-3 rounded-[10px] px-2 py-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-[11px] font-semibold text-sidebar-foreground">
-            {initials(user?.email)}
+            {initials(user?.name, user?.email)}
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-medium text-sidebar-foreground">{user?.name ?? 'Demo user'}</p>
@@ -94,7 +90,9 @@ export function Sidebar({ memberships, activeOrganizationId }: SidebarProps) {
           </div>
           <button
             type="button"
-            onClick={logout}
+            onClick={() => {
+              void logout()
+            }}
             disabled={isLoggingOut}
             aria-busy={isLoggingOut}
             aria-label="Sign out of your session"

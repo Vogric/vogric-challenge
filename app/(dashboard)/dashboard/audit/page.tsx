@@ -1,7 +1,10 @@
 import { redirect } from 'next/navigation'
+import { Activity } from 'lucide-react'
 import { getRequestUser } from '@/lib/request-user'
 import { getActiveMembership } from '@/lib/organizations'
+import { isNoOpAuditEvent } from '@/lib/audit-is-no-op'
 import { db } from '@/lib/db'
+import { AuditTimeline } from './_components/audit-timeline'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,24 +15,28 @@ export default async function AuditPage() {
   const activeMembership = await getActiveMembership(user.id)
   if (!activeMembership) {
     return (
-      <div className="rounded-lg border border-border bg-card p-6">
+      <div className="rounded-xl border border-border bg-card p-8">
         <h1 className="text-lg font-semibold">No organization assigned</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Ask an administrator to add you to an organization.
+        </p>
       </div>
     )
   }
 
   if (activeMembership.role !== 'ADMIN') {
     return (
-      <div className="rounded-lg border border-border bg-card p-6">
-        <h1 className="text-lg font-semibold">Audit log is restricted</h1>
+      <div className="mx-auto max-w-lg rounded-xl border border-border bg-card p-8 text-center">
+        <Activity className="mx-auto h-6 w-6 text-muted-foreground" aria-hidden="true" />
+        <h1 className="mt-3 text-lg font-semibold">Audit log is restricted</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Only organization admins can view audit events.
+          Only organization admins can view tenant audit events.
         </p>
       </div>
     )
   }
 
-  const events = await db.auditEvent.findMany({
+  const rawEvents = await db.auditEvent.findMany({
     where: { organizationId: activeMembership.organization.id },
     orderBy: { createdAt: 'desc' },
     take: 100,
@@ -44,54 +51,32 @@ export default async function AuditPage() {
     },
   })
 
+  const events = rawEvents.filter((event) => !isNoOpAuditEvent(event.action, event.metadata))
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Audit log</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Recent tenant-scoped changes in {activeMembership.organization.name}.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border pb-5">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Audit log</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Tenant-scoped changes in {activeMembership.organization.name}, newest first.
+          </p>
+        </div>
+        <span className="text-xs font-medium tabular-nums text-muted-foreground">
+          {events.length} event{events.length === 1 ? '' : 's'} · last 100
+        </span>
       </div>
 
       {events.length === 0 ? (
-        <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
-          No audit events yet. Change a task status or a member role to generate one.
+        <div className="rounded-xl border border-border bg-card p-10 text-center">
+          <Activity className="mx-auto h-6 w-6 text-muted-foreground" aria-hidden="true" />
+          <p className="mt-3 text-sm font-medium">No audit events yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Change a task status or a member role to generate one.
+          </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border bg-card shadow-sm">
-          <table className="w-full border-collapse text-left text-sm">
-            <thead className="border-b bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
-              <tr>
-                <th scope="col" className="px-4 py-3 font-medium">When</th>
-                <th scope="col" className="px-4 py-3 font-medium">Actor</th>
-                <th scope="col" className="px-4 py-3 font-medium">Action</th>
-                <th scope="col" className="px-4 py-3 font-medium">Entity</th>
-                <th scope="col" className="px-4 py-3 font-medium">Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {events.map((event) => (
-                <tr key={event.id} className="border-b last:border-0 hover:bg-muted/50">
-                  <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
-                    {event.createdAt.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="font-medium">{event.actor.name ?? event.actor.email}</div>
-                    <div className="text-xs text-muted-foreground">{event.actor.email}</div>
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs">{event.action}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {event.entityType}
-                    {event.entityId ? ` · ${event.entityId}` : ''}
-                  </td>
-                  <td className="max-w-xs truncate px-4 py-3 text-xs text-muted-foreground" title={JSON.stringify(event.metadata)}>
-                    {event.metadata ? JSON.stringify(event.metadata) : '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <AuditTimeline events={events} />
       )}
     </div>
   )

@@ -10,6 +10,9 @@ export const taskKeys = {
    * server never received it, so "Previous" produced a brand-new key and
    * refetched a page that was already cached.
    */
-  cursor: (orgId: string | null, cursor: string | null) =>
-    ['tasks', orgId, 'cursor', cursor] as const,
+  cursor: (
+    orgId: string | null,
+    cursor: string | null,
+    filters: { q?: string | undefined; status?: string | undefined; projectId?: string | undefined } = {}
+  ) => ['tasks', orgId, 'cursor', cursor, filters.q ?? '', filters.status ?? '', filters.projectId ?? ''] as const,
 }

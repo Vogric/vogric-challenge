@@ -169,6 +169,7 @@ async function main() {
 
     for (let i = 0; i < 20; i++) {
       const project = projects[i % projects.length]
+      if (!project) continue
       const title = `Task ${i + 1} of ${project.name}`
       const existing = await db.task.findFirst({
         where: { title, projectId: project.id },
@@ -180,7 +181,7 @@ async function main() {
       await db.task.create({
         data: {
           title,
-          status: statuses[i % statuses.length],
+          status: statuses[i % statuses.length] ?? 'todo',
           projectId: project.id,
           assigneeId: i % 3 === 0 ? demoUser.id : null,
         },
@@ -202,6 +203,7 @@ async function main() {
 
   for (let i = 0; i < bulkTaskCount; i++) {
     const project = acmeProjects[i % acmeProjects.length]
+    if (!project) continue
     const title = `Bulk Task ${i + 1} - ${project.name}`
     const existing = await db.task.findFirst({
       where: { title },
@@ -213,7 +215,7 @@ async function main() {
     await db.task.create({
       data: {
         title,
-        status: statuses[i % statuses.length],
+        status: statuses[i % statuses.length] ?? 'todo',
         projectId: project.id,
         assigneeId: i % 5 === 0 ? demoUser.id : null,
       },
@@ -232,6 +234,6 @@ main()
     console.error('[error] Error during seed:', e)
     process.exit(1)
   })
-  .finally(async () => {
-    await db.$disconnect()
+  .finally(() => {
+    void db.$disconnect()
   })

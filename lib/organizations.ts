@@ -38,6 +38,6 @@ export const getActiveMembership = cache(async (userId: string): Promise<Members
   const requestedOrganizationId = cookieStore.get(ACTIVE_ORG_COOKIE)?.value
   return (
     memberships.find((membership) => membership.organizationId === requestedOrganizationId) ??
-    memberships[0]
+    memberships[0] ?? null
   )
 })

@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation'
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query'
 import { getRequestUser } from '@/lib/request-user'
 import { getActiveMembership } from '@/lib/organizations'
-import { getTasksPage } from '@/lib/tasks'
+import { getTasksPage } from '@/lib/tasks/get-tasks-page'
+import { db } from '@/lib/db'
 import { taskKeys } from '@/lib/query-keys'
 import { TASK_PAGE_SIZE } from '@/types/tasks'
 import { TaskListClient } from '@/components/projects/TaskListClient'
@@ -17,7 +18,13 @@ export const dynamic = 'force-dynamic'
  * into a child wrapped in <Suspense> lets the shell stream immediately and the
  * table fill in when the query resolves.
  */
-async function TasksSection({ organizationId }: { organizationId: string }) {
+async function TasksSection({
+  organizationId,
+  projects,
+}: {
+  organizationId: string
+  projects: Array<{ id: string; name: string }>
+}) {
   const queryClient = new QueryClient()
 
   await queryClient.prefetchQuery({
@@ -27,7 +34,7 @@ async function TasksSection({ organizationId }: { organizationId: string }) {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <TaskListClient key={organizationId} orgId={organizationId} />
+      <TaskListClient key={organizationId} orgId={organizationId} projects={projects} />
     </HydrationBoundary>
   )
 }
@@ -50,16 +57,27 @@ export default async function ProjectsPage() {
 
   const organizationId = membership.organization.id
 
+  const projects = await db.project.findMany({
+    where: { organizationId },
+    orderBy: { name: 'asc' },
+    select: { id: true, name: true },
+  })
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
-        <p className="text-sm text-muted-foreground">
-          Organization: {membership.organization.name}
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border pb-5">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Every task across the workspace, newest first.
+          </p>
+        </div>
+        <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+          {membership.organization.name}
         </p>
       </div>
       <Suspense fallback={<TaskTableSkeleton rows={10} />}>
-        <TasksSection organizationId={organizationId} />
+        <TasksSection organizationId={organizationId} projects={projects} />
       </Suspense>
     </div>
   )

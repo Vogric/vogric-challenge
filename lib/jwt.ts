@@ -30,10 +30,10 @@ export type SessionPayload = {
   userId: string
   email: string
   name?: string | null
-  role?: string
-  jti?: string
-  iat?: number
-  exp?: number
+  role?: string | undefined
+  jti?: string | undefined
+  iat?: number | undefined
+  exp?: number | undefined
 }
 
 export type SessionToken = {
