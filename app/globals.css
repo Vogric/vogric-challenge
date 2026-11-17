@@ -127,3 +127,14 @@ html {
     animation: none;
   }
 }
+
+
+/* The command palette uses a parent focus underline instead of the global
+   outline so the search row stays visually contained inside the dialog. */
+.command-search-input:focus-visible {
+  outline: none;
+}
+
+.command-search-row:focus-within {
+  box-shadow: inset 0 -2px 0 hsl(var(--ring));
+}

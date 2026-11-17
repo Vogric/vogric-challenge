@@ -9,7 +9,14 @@ import {
 } from '@tanstack/react-query'
 import { useNotifications } from '@/hooks/useNotifications'
 import { taskKeys } from '@/lib/query-keys'
-import { tasksResponseSchema, type Task, type TasksResponse, type TaskStatus } from '@/lib/validations/tasks'
+import {
+  taskUpdateResponseSchema,
+  tasksResponseSchema,
+  type TaskFilters,
+  type TasksResponse,
+  type TaskStatus,
+  type TaskUpdateResponse,
+} from '@/lib/validations/tasks'
 import { TASK_PAGE_SIZE } from '@/types/tasks'
 
 type UpdateTaskStatusInput = {
@@ -25,6 +32,7 @@ async function fetchTasks(
   orgId: string,
   pageSize: number,
   cursor: string | null,
+  filters: TaskFilters,
   signal?: AbortSignal
 ): Promise<TasksResponse> {
   const params = new URLSearchParams({
@@ -32,11 +40,13 @@ async function fetchTasks(
     pageSize: String(pageSize),
   })
   if (cursor) params.set('cursor', cursor)
+  if (filters.q) params.set('q', filters.q)
+  if (filters.status) params.set('status', filters.status)
+  if (filters.projectId) params.set('projectId', filters.projectId)
 
-  const res = await fetch(`/api/dashboard/tasks?${params.toString()}`, {
-    cache: 'no-store',
-    signal,
-  })
+  const init: RequestInit = { cache: 'no-store' }
+  if (signal) init.signal = signal
+  const res = await fetch(`/api/dashboard/tasks?${params.toString()}`, init)
   if (!res.ok) throw new Error('Failed to fetch tasks')
 
   // Throwing on a malformed payload is deliberate: the previous code fell back
@@ -45,29 +55,29 @@ async function fetchTasks(
   return tasksResponseSchema.parse(await res.json())
 }
 
-async function updateTaskStatus(input: UpdateTaskStatusInput): Promise<Task> {
+async function updateTaskStatus(input: UpdateTaskStatusInput): Promise<TaskUpdateResponse['task']> {
   const res = await fetch(`/api/dashboard/tasks/${input.taskId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ status: input.status }),
   })
   if (!res.ok) throw new Error('Failed to update task')
-  const data = (await res.json()) as { task: Task }
-  return data.task
+  return taskUpdateResponseSchema.parse(await res.json()).task
 }
 
 export function useTasks(
   orgId: string | null,
   pageSize = TASK_PAGE_SIZE,
-  cursor: string | null = null
+  cursor: string | null = null,
+  filters: TaskFilters = {}
 ) {
   return useQuery({
-    queryKey: taskKeys.cursor(orgId, cursor),
+    queryKey: taskKeys.cursor(orgId, cursor, filters),
     queryFn: ({ signal }) => {
       if (!orgId) throw new Error('orgId is required to fetch tasks')
       // TanStack Query aborts this signal when the page changes, so a slow
       // response for an obsolete page can never overwrite the latest one.
-      return fetchTasks(orgId, pageSize, cursor, signal)
+      return fetchTasks(orgId, pageSize, cursor, filters, signal)
     },
     enabled: Boolean(orgId),
     staleTime: 1000 * 60 * 2,
@@ -80,7 +90,7 @@ export function useUpdateTaskStatus(orgId: string) {
   const { addNotification } = useNotifications()
   const queryKey = taskKeys.byOrg(orgId)
 
-  return useMutation<Task, Error, UpdateTaskStatusInput, UpdateTaskContext>({
+  return useMutation<TaskUpdateResponse['task'], Error, UpdateTaskStatusInput, UpdateTaskContext>({
     mutationFn: updateTaskStatus,
     onMutate: async (input): Promise<UpdateTaskContext> => {
       await queryClient.cancelQueries({ queryKey })
@@ -106,7 +116,7 @@ export function useUpdateTaskStatus(orgId: string) {
       addNotification({ type: 'error', message: 'Failed to update task. Reverting changes.' })
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey })
+      void queryClient.invalidateQueries({ queryKey })
     },
   })
 }

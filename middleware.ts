@@ -46,7 +46,7 @@ export async function middleware(req: NextRequest) {
     if (limited) return limited
   }
 
-  const isDashboard = pathname.startsWith('/dashboard')
+  const isDashboard = pathname === '/dashboard' || pathname.startsWith('/dashboard/')
   const hasSessionCookie = Boolean(readSessionToken(req.headers.get('cookie')))
 
   if (isDashboard && !hasSessionCookie) {

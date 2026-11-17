@@ -5,4 +5,4 @@
  */
 export const TASK_PAGE_SIZE = 50
 
-export type { Task, TaskStatus, TasksPagination, TasksResponse } from '@/lib/validations/tasks'
+export type { Task, TaskFilters, TaskStatus, TasksPagination, TasksResponse } from '@/lib/validations/tasks'

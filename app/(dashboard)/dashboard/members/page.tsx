@@ -44,13 +44,21 @@ export default async function MembersPage() {
     createdAt: membership.createdAt.toISOString(),
   }))
 
+  const roleCounts = members.reduce(
+    (counts, membership) => {
+      counts[membership.role] += 1
+      return counts
+    },
+    { ADMIN: 0, MANAGER: 0, VIEWER: 0 }
+  )
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border pb-5">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Team Members</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Team members</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {activeMembership.organization.name} · signed in as {activeMembership.role.toLowerCase()}
+            People with access to {activeMembership.organization.name}.
           </p>
         </div>
         <span className="text-xs font-medium tabular-nums text-muted-foreground">
@@ -58,7 +66,22 @@ export default async function MembersPage() {
         </span>
       </div>
 
-      <MembersTable members={members} canManage={activeMembership.role === 'ADMIN'} />
+      <div className="grid grid-cols-3 gap-3">
+        {(['ADMIN', 'MANAGER', 'VIEWER'] as const).map((role) => (
+          <div key={role} className="rounded-xl border border-border bg-card px-4 py-3">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              {role === 'ADMIN' ? 'Admins' : role === 'MANAGER' ? 'Managers' : 'Viewers'}
+            </p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums">{roleCounts[role]}</p>
+          </div>
+        ))}
+      </div>
+
+      <MembersTable
+        members={members}
+        canManage={activeMembership.role === 'ADMIN'}
+        currentUserEmail={user.email}
+      />
     </div>
   )
 }

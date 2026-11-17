@@ -13,7 +13,7 @@ const WorkspaceTransitionContext = createContext<WorkspaceTransitionContextValue
 )
 
 export function WorkspaceTransitionProvider({ children }: { children: ReactNode }) {
-  const [isSwitching, setIsSwitching] = useState(false)
+  const [isSwitching, setIsSwitching] = useState<boolean>(false)
 
   const begin = useCallback(() => setIsSwitching(true), [])
   const end = useCallback(() => setIsSwitching(false), [])

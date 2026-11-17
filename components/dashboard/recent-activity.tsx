@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { formatRelativeTime } from '@/lib/format-relative-time'
+import { initials } from '@/lib/initials'
 
 type Activity = {
   id: string
@@ -14,28 +16,6 @@ const ACTION_LABELS: Record<string, string> = {
   'task.status_changed': 'Task status changed',
   'membership.role_changed': 'Member role changed',
   'organization.selected': 'Organization selected',
-}
-
-function relativeTime(date: Date): string {
-  const seconds = Math.round((date.getTime() - Date.now()) / 1000)
-  const formatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
-  const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
-    ['year', 31536000],
-    ['month', 2592000],
-    ['week', 604800],
-    ['day', 86400],
-    ['hour', 3600],
-    ['minute', 60],
-  ]
-
-  for (const [unit, size] of units) {
-    if (Math.abs(seconds) >= size) return formatter.format(Math.round(seconds / size), unit)
-  }
-  return 'just now'
-}
-
-function initials(name: string | null, email: string): string {
-  return (name?.slice(0, 2) ?? email.slice(0, 2)).toUpperCase()
 }
 
 export function RecentActivity({ items }: { items: Activity[] }) {
@@ -54,7 +34,7 @@ export function RecentActivity({ items }: { items: Activity[] }) {
         {items.length === 0 ? (
           <p className="text-sm text-muted-foreground">No activity yet.</p>
         ) : (
-          <ol className="space-y-4">
+          <ol className="space-y-4" data-visual-mask="activity-list">
             {items.map((item) => (
               <li key={item.id} className="flex items-start gap-3">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-foreground">
@@ -65,7 +45,7 @@ export function RecentActivity({ items }: { items: Activity[] }) {
                     {ACTION_LABELS[item.action] ?? item.action}
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    {item.actor.name ?? item.actor.email} · {relativeTime(item.createdAt)}
+                    {item.actor.name ?? item.actor.email} · {formatRelativeTime(item.createdAt)}
                   </p>
                 </div>
               </li>
